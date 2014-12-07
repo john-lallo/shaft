@@ -1,7 +1,7 @@
 <!DOCTYPE HTML>
 <html>
 	<head>
-		<title>Meh</title>
+		<title>shaft-dev</title>
 		<style>
 			html, body {
 				color: #ffffff;
@@ -15,6 +15,11 @@
 				font-weight: bold;
 			}
 
+			h3 {
+				font-size: 24px;
+				margin: 8px 0;
+			}
+
 			#world {
 				width: 640px;
 				height: 640px;
@@ -25,6 +30,35 @@
 				margin-right: auto;
 			
 				overflow: hidden;
+				position: relative;
+			}
+
+			.overlay {
+				position: absolute;
+				top: 0;
+				bottom: 0;
+				left: 0;
+				right: 0;
+
+				text-align: center;
+
+				z-index: 9;
+			}
+
+			.msg{
+
+				display:inline-block;
+				text-align: center;
+
+				padding: 32px 96px;
+
+				outline: 2px solid #000000;
+				border: 2px solid #ffffff;
+
+				color: #ffffff;
+				background-color: #000000;
+
+				margin-top: 240px;
 			}
 
 			#panel {
@@ -46,8 +80,6 @@
 			.label {
 				height: 16px;				
 				width: 80px;
-
-				text-align: right;
 
 				display: inline-block;
 			}
@@ -83,6 +115,7 @@
 			}
 
 			.C { color: #ffffff; background-color: #000000; }
+			.beep { color: #000000; background-color: #ffffff; }
 			.A { color: #222222; background-color: #000000; }
 			.E { color: #aaaaaa; background-color: #ffffff; }
 			
@@ -153,6 +186,19 @@
 		}
 		
 
+		function showMsg(msg){
+			$('.overlay').append('<div class = "msg">'
+				+ msg +
+			'</div>');
+		}
+
+		function declareDeath(msg){
+			console.log('eh');
+			var str = '<h3>GAME OVER</h3>';
+			str += msg;
+			showMsg(str);
+		}
+
 
 
 		/*...................................World Altering.........*/
@@ -202,7 +248,7 @@
 			e.html(image['C']);
 		}
 
-
+		//attempt to move, excavate if blocked
 		function shove(dx, dy){
 			if(solid(presX + dx, presY + dy)){
 				if(footed(presX, presY) && isSane(presX + dx, presY + dy)){
@@ -214,6 +260,15 @@
 				move(dx, dy);
 			}
 		}
+
+		
+
+		function craftBeep(){
+			var craft = $('.C');
+			craft.addClass('beep');
+			setTimeout(function(){craft.removeClass('beep');}, 100);
+		}
+
 
 
 		//some handy check functions
@@ -264,13 +319,26 @@
 
 		/*...................................Timestep.........*/
 
-		var falling = 1;
+		var T = true;
+
+		var fallAccul = 0;
 		var inter = 1;
 
 		var v = 0;
 		var inv_v = [ 3, 2, 1, 1, 1];
 
 		function timestep(){
+
+			if(T == false) return;
+
+			//check for end game
+			if(footed(presX, presY)){
+				if(fuelLeft <= 0){declareDeath('FUEL DEPLETED'); T = false; }
+				if(fuselage <= 0){declareDeath('FATAL DAMAGE');  T = false; }
+			}
+
+
+
 			//.....................update map & render player character
 			
 			if(K[38]){ v -= 0.4; fuelLeft -= 0.01; } // UP
@@ -278,7 +346,17 @@
 
 			v += 0.2; //gravity
 
-			v = Math.max(Math.min(v, 4), -4);
+			//track & check for fall damage		
+			if(v < -3){ v = -3; }
+			else if(v > 3){ v = 3; fallAccul += 0.5; }
+			else { fallAccul = 0; }
+
+			if(footed(presX, presY) && (fallAccul > 0)){
+			fuselage -= fallAccul; craftBeep(); fallAccul = 0;
+			}
+
+			
+			//update movement of craft
 			if(inter % inv_v[Math.floor(Math.abs(v))] == 0){
 				if(v > 0){
 					if(!footed(presX, presY)){
@@ -294,7 +372,7 @@
 					}
 				}
 			} else { ++inter; }
-						
+			
 			if(K[39]) { shove(1, 0);  } // RIGHT			
 			if(K[37]) { shove(-1, 0); } // LEFT
 			if(K[40] && (footed(presX, presY))){ shove(0, 1); } // DOWN
@@ -307,6 +385,7 @@
 
 			//.....................misc.
 			//fuelLeft -= 0.002;
+
 
 			//.....................update interface
 			showProgress('progress', progress);
@@ -322,7 +401,9 @@
 
 	<body>
 		<div id = "world">
-			
+			<div class = "overlay">
+
+			</div>
 		</div>
 
 		<div id = "panel">
