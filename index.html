@@ -34,14 +34,11 @@
 			}
 
 			.overlay {
-				position: absolute;
-				top: 0;
-				bottom: 0;
-				left: 0;
-				right: 0;
-
+				position: fixed;
+				bottom: 0;	left: 0;
+				top: 0;		right: 0;
 				text-align: center;
-
+				
 				z-index: 9;
 			}
 
@@ -160,6 +157,7 @@
 					'<div class = "e ' + world[i][j] + '" id = "' + i + '-' + j +
 					'">' + image[world[i][j]] + '</div>'
 				);
+				$('.msg').css('marginTop', (240 + depth * 16) + 'px');
 			}
 			}
 		}
@@ -193,7 +191,8 @@
 		}
 
 		function declareDeath(msg){
-			console.log('eh');
+			//console.log('eh');
+			craftBeep();
 			var str = '<h3>GAME OVER</h3>';
 			str += msg;
 			showMsg(str);
@@ -253,7 +252,7 @@
 			if(solid(presX + dx, presY + dy)){
 				if(footed(presX, presY) && isSane(presX + dx, presY + dy)){
 					fuelLeft -= 0.01;
-					if(progress < 8){ progress += 1; }
+					if(progress < 8){ progress += 2; }
 					else { progress = 0; altr(presX + dx, presY + dy, 'A'); }
 				}
 			} else {
