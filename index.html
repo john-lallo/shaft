@@ -123,20 +123,9 @@
 	<script language = 'javascript'>
 		/*...................................World Construction.........*/
 		var sizeX = 40;
-		var sizeY = 60;
+		var sizeY = 40;
 
 		var depth = 0;
-
-		// initialization of world map
-		var world = [];
-		for(var i = 0; i < sizeY; ++i){ world[i] = []; }
-
-		for(var i = 0; i < sizeY; ++i){
-		for(var j = 0; j < sizeX; ++j){
-			world[i][j] = 'A';
-		}
-		}
-
 
 		//initialization of player entity
 		var prevX = 4;
@@ -149,6 +138,46 @@
 		var fuselage = 8;
 		var progress = 0;
 
+    	var world = [];
+
+		// procedural generation for world
+		function gnrtInit(){
+
+    		// initialization of world map
+    		for(var i = 0; i < sizeY; ++i){ world[i] = []; }
+    
+    		for(var i = 0; i < sizeY; ++i){
+    		for(var j = 0; j < sizeX; ++j){
+    			world[i][j] = 'A';
+    		}
+    		}
+
+			//earth
+			for(var i = 0; i < sizeX; ++i){
+				var depth = sizeY - 40 + Math.floor(Math.random() * 12 + 1);
+				for(var j = sizeY; j >= sizeY - depth; --j){
+					world[i][j] = 'E';
+				}
+			}
+		}
+
+        function gnrtNext(){
+            for(var i = sizeY; i < sizeY + 16; ++i){ world[i] = [];
+        	for(var j = 0; j < sizeX; ++j){ world[i][j] = 'E'; }}
+        	
+			for(var i = sizeY; i < sizeY + 16; ++i){
+			for(var j = 0; j < sizeX; ++j){
+				$("#world").append(
+					'<div class = "e ' + world[i][j] + '" id = "' + j + '-' + i +
+					'">' + image[world[i][j]] + '</div>'
+				);
+				$('.msg').css('marginTop', (240 + depth * 16) + 'px');
+			}}
+        	
+        	
+            sizeY += 16;
+        }
+
 		// project world image to screen
 		function project(){
 			for(var j = 0; j < sizeY; ++j){
@@ -158,20 +187,7 @@
 					'">' + image[world[i][j]] + '</div>'
 				);
 				$('.msg').css('marginTop', (240 + depth * 16) + 'px');
-			}
-			}
-		}
-
-		// procedural generation for world
-		function generate(){
-
-			//earth
-			for(var i = 0; i < sizeX; ++i){
-				var depth = 40 + Math.floor(Math.random() * 12 + 1);
-				for(var j = sizeY; j >= sizeY - depth; --j){
-					altr(i, j, 'E');
-				}
-			}
+			}}
 		}
 		
 		//return corresponding element as jQ entity
@@ -180,7 +196,7 @@
 
 		/*...................................Interface Updating.........*/
 		function showProgress(id, val){
-			$("#" + id).css('width', 8 * Math.floor(2 * val + 0.001) + 'px');
+			$("#" + id).css('width', 8 * Math.ceil(2 * val - 0.001) + 'px');
 		}
 		
 
@@ -214,9 +230,10 @@
 
 		// change cell e to state t
 		function altr(x, y, t){
-			world[x][y] = t;
+		    world[x][y] = t;
 
 			e = elem(x, y);
+			console.log(e.attr('id'));
 			e.attr('class', 'e ' + t);
 			e.html(image[t]);
 		}
@@ -292,9 +309,11 @@
 		$(document).ready(function(){
 
 			// construct world scene.
-			project();
-			generate();
-
+			gnrtInit();
+            project();
+            
+            gnrtNext();
+            
 			$(document).keydown(keyDownHandler);
 			$(document).keyup(keyUpHandler);
 			//timestep();
@@ -379,7 +398,8 @@
 
 			//.....................update scroll
 			if(presY < (depth + 8)){ scroll(-1); }
-			else if (presY > (depth + 32)){ scroll(1); }			
+			else if (presY > (depth + 32)){ scroll(1); }
+			if(presY > sizeY - 12){ gnrtNext(); }
 
 
 			//.....................misc.
