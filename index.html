@@ -4,48 +4,88 @@
 	    <meta charset = 'utf-8'>
 		<title>shaft-dev</title>
 		<style>
-		    html, body{
-		        width: 100%;
-		        padding: 0;
-		        margin: 0;
-		        
-		        color: #fff;
-		        background-color: #000;
-		        
-		        font-size: 14px;
+            html, body{
+                width: 100%;
+                padding: 0;
+                margin: 0;
+                
+                color: #fff;
+                background-color: #000;
+                
+                font-size: 14px;
                 font-family: monospace;
-		    }
-		    
-		    #world{
-		        width: 640px;
-		        height: 640px;
-		        
-		        margin: 16px auto;
-		        
-		        outline: 2px solid #fff;
-		        
-		        line-height: 1;
-		        
-		        overflow: hidden;
-		    }
-		    
-		    .e{
-		        display: inline-block;
-		        
-		        width: 16px;
-		        height: 16px;
-		        
-		        text-align: center;
-		    }
-		    .P { color: #fff; background-color: #000; font-weight: bold;}
-
-		    .A { color: #222; background-color: #000; }
-		    .E { color: #aaa; background-color: #fff; }
+            }
+                
+            #world{
+                display: inline-block;
+                
+                width: 640px;
+                height: 640px;
+                
+                margin: 8px 4px;
+                
+                outline: 2px solid #fff;
+                
+                line-height: 1;
+                
+                overflow: hidden;
+            }
+                
+            .e{
+                display: inline-block;
+                
+                width: 16px;
+                height: 16px;
+                
+                text-align: center;
+            }
+            .P { color: #fff; background-color: #000; font-weight: bold; }
+            .P-highlighted { color: #000; background-color: #fff; font-weight: bold; }
+                
+            .A { color: #222; background-color: #000; }
+            .E { color: #aaa; background-color: #fff; }
+                
+            #stats {
+                display: inline-block;
+                
+                width: 136px;
+                height: 640px;
+                
+                margin: 8px 4px;
+                
+                /*outline: 2px solid #fff;*/
+                
+                overflow: hidden;
+            }
+                
+            .label {
+                text-align: left;
+            }
+                
+            .progbar {
+                position: relative;
+                
+                height: 12px;
+                width: 128px;
+                outline: 2px solid #fff;
+                
+                margin: 4px auto 8px auto;
+                text-align: left;
+            }
+                
+            .bar {
+                position: absolute;
+                left: 0;
+                bottom: 0;
+                top: 0;
+                
+                background-color: #fff;
+            }
 		</style>
 	    <script src = "jquery-2.1.1.min.js"></script>
 	    <script>
 	    
-            var W = [];
+            var W = []; //WORLD ENVIRONMENT
             
             W.conf = [];
             W.elem = [];
@@ -119,7 +159,12 @@
                 }
             }
             
-            var P = [];
+            function solid(x, y){ return (!valid(x, y) || !(W[x][y] == 'A')); }
+            function footed(x, y){ return (solid(x, y + 1)); }
+            
+            
+            
+            var P = []; //PLAYER ENTITY
             
             P.presX = 4;
             P.presY = 4;
@@ -127,9 +172,18 @@
             P.prevX = 4;
             P.prevY = 4;
     
+            P.stats = [];
     
-            P.fusalage = 128;
-            P.fuelLeft = 128;
+            P.stats.fuselage = [];
+            P.stats.fuselage.val = 8;
+            P.stats.fuselage.cap = 8;
+            
+            P.stats.fuelLeft = [];
+            P.stats.fuelLeft.val = 512;
+            P.stats.fuelLeft.cap = 512;
+            
+            P.stats.efficiency = 2;
+            P.stats.engine = 0.5;
             
             P.progress = 0;
 
@@ -143,10 +197,17 @@
                 W.elem[P.presX][P.presY].attr('class', 'e P');
                 W.elem[P.presX][P.presY].html(W.conf.image['P']);
             }
-            
-            function solid(x, y){ return (!valid(x, y) || !(W[x][y] == 'A')); }
-            function footed(x, y){ return (solid(x, y + 1)); }
-            
+            P.beep = function(){
+                W.elem[P.presX][P.presY].attr('class', 'e P-highlighted');
+                setTimeout(function(){
+                    W.elem[P.presX][P.presY].attr('class', 'e P');
+                }, 50);
+            }
+        
+            function showProg(name, val, cap){
+                $('#' + name).css('width', 8 * Math.ceil(16 * val / cap));
+            }
+    
             var E = [];
             E.K = [];
             
@@ -163,57 +224,54 @@
                     P.move(dx, dy);
                 } else {
                     if(footed(P.presX, P.presY)){
-                        P.progress += 2;
+                        P.progress += P.stats.efficiency;
+                        --P.stats.fuelLeft.val;
                         if(P.progress >= 8){
                             P.progress = 0;
                             W.altr(P.presX + dx, P.presY + dy, 'A');   
                         }
-                    }    
+                    }
                 }
             }
-            
+
             
             function keyDownHandler(e){ E.K[e.which] = true; }
             function keyUpHandler(e){ E.K[e.which] = false; }
             
             P.v = 0;
-            P.engine = 0.5;
-            
             var gravity = 0.2;
             
             
             P.update = function(){
                 
                 P.v += gravity;
-                if(E.K[38]){ P.v -= P.engine; }
-                if(E.K[40]){ footed(P.presX, P.presY) ? P.shove(0, 1) : P.v += P.engine; }
+                if(E.K[38]){ P.v -= P.stats.engine; --P.stats.fuelLeft.val; }
+                if(E.K[40]){ footed(P.presX, P.presY) ? P.shove(0, 1) : P.v += P.stats.engine; --P.stats.fuelLeft.val; }
                 
-                console.log(P.v);
                 var delta = 0;
                 var magnt = Math.abs(P.v);
                 if (P.v > 0){ delta = 1; } else if (P.v < 0){ delta = -1; }
                 
                 for(var i = 0; i < magnt; ++i){
                     if(!solid(P.presX, P.presY + delta)){ P.move(0, delta); }
-                    else {
-                        if(P.v > 1.2){ console.log('AW'); P.v = 0; }
-                    }
+                    else { P.v = 0; break; }
                 }
                 
+                if(footed(P.presX, P.presY) && magnt > 1){ P.beep(); P.stats.fuselage.val -= Math.ceil(magnt); }
+                
+                
+                
                 if(footed(P.presX, P.presY)){ P.v = 0; }
-                
-                
-
                 
                 if(E.K[39]){ P.shove(1, 0); }
                 if(E.K[37]){ P.shove(-1, 0); }
             }
             
-            
+            function endgame(){ return !(P.stats.fuselage.val > 0 && P.stats.fuelLeft.val > 0); }
             
             $(document).ready(function(){
                 W.genInit();
-                W.genNext();
+                //W.genNext();
             
                 $(document).keydown(keyDownHandler);
                 $(document).keyup(keyUpHandler);
@@ -222,24 +280,39 @@
             });
             
             
-            
+            var T = true;
             function timestep(){
-
-                P.update();
-
-                //P.render();
-                
-                if(P.presY < W.depth() + 6){ W.scroll(-1); }                
-                if(P.presY > W.depth() + (40 - 6)){ W.scroll(1); }
+                if(T){
+                    P.update();
+    
+                    showProg('fuelLeft', P.stats.fuelLeft.val, P.stats.fuelLeft.cap);
+                    showProg('fuselage', P.stats.fuselage.val, P.stats.fuselage.cap);
+                    //P.render();
+                    
+                    if(P.presY < W.depth() + 6){ W.scroll(-1); }                
+                    if(P.presY > W.depth() + (40 - 6)){ W.scroll(1); }
+                    if(P.presY > W.conf.sizeY - 6){ W.genNext(); }
+                    
+                    if(endgame()){ T = false; console.log('GAME OVER'); }
+                }
             }
 
 	    </script>
 	</head>
 
 	<body>
+	<div style = "text-align: center; width: 100%; padding: 32px 0">
         <div id = "world">
         
         </div>
 
+        <div id = "stats">
+            <div class = 'label'>FUSELAGE</div>
+            <div class = 'progbar'><div id = 'fuselage' class = 'bar'></div></div>
+            
+            <div class = 'label'>FUEL</div>
+            <div class = 'progbar'><div id = 'fuelLeft' class = 'bar'></div></div>
+        </div>
+    </div>
 	</body>
 </html>
