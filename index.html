@@ -1,16 +1,245 @@
 <!DOCTYPE HTML>
 <html>
 	<head>
+	    <meta charset = 'utf-8'>
 		<title>shaft-dev</title>
 		<style>
-		
+		    html, body{
+		        width: 100%;
+		        padding: 0;
+		        margin: 0;
+		        
+		        color: #fff;
+		        background-color: #000;
+		        
+		        font-size: 14px;
+                font-family: monospace;
+		    }
+		    
+		    #world{
+		        width: 640px;
+		        height: 640px;
+		        
+		        margin: 16px auto;
+		        
+		        outline: 2px solid #fff;
+		        
+		        line-height: 1;
+		        
+		        overflow: hidden;
+		    }
+		    
+		    .e{
+		        display: inline-block;
+		        
+		        width: 16px;
+		        height: 16px;
+		        
+		        text-align: center;
+		    }
+		    .P { color: #fff; background-color: #000; font-weight: bold;}
+
+		    .A { color: #222; background-color: #000; }
+		    .E { color: #aaa; background-color: #fff; }
 		</style>
-	<script src = "jquery-2.1.1.min.js"></script>
-	
+	    <script src = "jquery-2.1.1.min.js"></script>
+	    <script>
+	    
+            var W = [];
+            
+            W.conf = [];
+            W.elem = [];
+            
+            W.conf.sizeX = 40;
+            W.conf.sizeY = 40;
+            
+            function sane(x, y){ return { x: Math.min(Math.max(0, x), W.conf.sizeX - 1), y: Math.min(Math.max(0, y), W.conf.sizeY - 1) }; }
+            function valid(x, y){ return (x >= 0 && x < W.conf.sizeX && y >= 0 && y < W.conf.sizeY); }
+            W.conf.image = {
+                'P': '&',
+                
+                'A': '·',   // [A]ir
+                'E': '·'   // [E]arth
+            };
+            
+            W.genInit = function(){
+                for(var i = 0; i < W.conf.sizeX; ++i){ W[i] = []; }
+                
+                var depth;
+                
+                for(var i = 0; i < W.conf.sizeX; ++i){
+                depth = 8 + Math.floor(Math.random() * 8);
+                for(var j = 0; j < W.conf.sizeY; ++j){
+                    (j < (W.conf.sizeY - depth)) ? W[i][j] = 'A' : W[i][j] = 'E';
+                }}
+                
+
+                for(var i = 0; i < W.conf.sizeX; ++i){ W.elem[i] = []; }
+
+                for(var j = 0; j < W.conf.sizeY; ++j){
+                for(var i = 0; i < W.conf.sizeX; ++i){
+
+                    $('#world').append('<div class = "e ' + W[i][j] +
+                    '" id = "' + i + '-' + j + '">'
+                    + W.conf.image[W[i][j]] +
+                    '</div>');
+                    
+                    W.elem[i][j] = $('#' + i + '-' + j);
+                
+                }}
+            }
+            W.genNext = function(){
+                for(var i = 0; i < W.conf.sizeX; ++i){
+                for(var j = W.conf.sizeY; j < W.conf.sizeY + 8; ++j){
+                        W[i][j] = 'E';
+                }}
+
+                for(var j = W.conf.sizeY; j < W.conf.sizeY + 8; ++j){                
+                for(var i = 0; i < W.conf.sizeX; ++i){
+
+                    $('#world').append('<div class = "e ' + W[i][j] +
+                    '" id = "' + i + '-' + j + '">'
+                    + W.conf.image[W[i][j]] +
+                    '</div>');
+                    
+                    W.elem[i][j] = $('#' + i + '-' + j);
+                
+                }}
+                
+                W.conf.sizeY += 8;
+            }
+
+            W.scroll = function(delta){ $('#world').scrollTop($('#world').scrollTop() + delta * 16); }
+            W.depth = function(){ return $('#world').scrollTop() / 16; }
+            
+            W.altr = function(x, y, t){
+                if(valid(x, y)){
+                W[x][y] = t;
+                W.elem[x][y].attr('class', 'e ' + t).html(W.conf.image[t]);
+                }
+            }
+            
+            var P = [];
+            
+            P.presX = 4;
+            P.presY = 4;
+            
+            P.prevX = 4;
+            P.prevY = 4;
+    
+    
+            P.fusalage = 128;
+            P.fuelLeft = 128;
+            
+            P.progress = 0;
+
+            P.profit = 0;
+
+
+            P.render = function(){
+                W.elem[P.prevX][P.prevY].attr('class', 'e ' + W[P.prevX][P.prevY]);
+                W.elem[P.prevX][P.prevY].html(W.conf.image[W[P.prevX][P.prevY]]);
+                
+                W.elem[P.presX][P.presY].attr('class', 'e P');
+                W.elem[P.presX][P.presY].html(W.conf.image['P']);
+            }
+            
+            function solid(x, y){ return (!valid(x, y) || !(W[x][y] == 'A')); }
+            function footed(x, y){ return (solid(x, y + 1)); }
+            
+            var E = [];
+            E.K = [];
+            
+            P.move = function(dx, dy){
+                P.prevX = P.presX; P.prevY = P.presY;
+                
+                var C = sane(P.presX + dx, P.presY + dy);
+                P.presX = C.x; P.presY = C.y;
+                
+                P.render();
+            }
+            P.shove = function(dx, dy){
+                if(!solid(P.presX + dx, P.presY + dy)){
+                    P.move(dx, dy);
+                } else {
+                    if(footed(P.presX, P.presY)){
+                        P.progress += 2;
+                        if(P.progress >= 8){
+                            P.progress = 0;
+                            W.altr(P.presX + dx, P.presY + dy, 'A');   
+                        }
+                    }    
+                }
+            }
+            
+            
+            function keyDownHandler(e){ E.K[e.which] = true; }
+            function keyUpHandler(e){ E.K[e.which] = false; }
+            
+            P.v = 0;
+            P.engine = 0.5;
+            
+            var gravity = 0.2;
+            
+            
+            P.update = function(){
+                
+                P.v += gravity;
+                if(E.K[38]){ P.v -= P.engine; }
+                if(E.K[40]){ footed(P.presX, P.presY) ? P.shove(0, 1) : P.v += P.engine; }
+                
+                console.log(P.v);
+                var delta = 0;
+                var magnt = Math.abs(P.v);
+                if (P.v > 0){ delta = 1; } else if (P.v < 0){ delta = -1; }
+                
+                for(var i = 0; i < magnt; ++i){
+                    if(!solid(P.presX, P.presY + delta)){ P.move(0, delta); }
+                    else {
+                        if(P.v > 1.2){ console.log('AW'); P.v = 0; }
+                    }
+                }
+                
+                if(footed(P.presX, P.presY)){ P.v = 0; }
+                
+                
+
+                
+                if(E.K[39]){ P.shove(1, 0); }
+                if(E.K[37]){ P.shove(-1, 0); }
+            }
+            
+            
+            
+            $(document).ready(function(){
+                W.genInit();
+                W.genNext();
+            
+                $(document).keydown(keyDownHandler);
+                $(document).keyup(keyUpHandler);
+        
+                setInterval(timestep, 100);
+            });
+            
+            
+            
+            function timestep(){
+
+                P.update();
+
+                //P.render();
+                
+                if(P.presY < W.depth() + 6){ W.scroll(-1); }                
+                if(P.presY > W.depth() + (40 - 6)){ W.scroll(1); }
+            }
+
+	    </script>
 	</head>
 
 	<body>
-
+        <div id = "world">
+        
+        </div>
 
 	</body>
 </html>
