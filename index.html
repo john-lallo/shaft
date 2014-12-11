@@ -20,14 +20,14 @@
             
             h3 {
                 font-size: 52px;
-                line-height: 0.8;
+                line-height: 1;
                 font-weight: bold;
                 margin: 0 0 16px 0;
             }
             
             h4 {
                 font-size: 24px;
-                line-height: 0.8;
+                line-height: 1;
                 font-weight: bold;
                 margin: 0 0 16px 0;
             }
@@ -138,6 +138,7 @@
                 padding: 32px;
                 
                 vertical-align: middle;
+                text-align: left;
                 
                 outline: 4px solid #000;
                 border: 2px solid #fff;
@@ -298,7 +299,7 @@
                 
                 P.progress = 0;
     
-                P.profit = 0;
+                P.profit = 12;
                 
                 P.v = 0;
             }
@@ -358,14 +359,17 @@
             P.refuel = function(delta){
                 delta = Math.min(Math.min(delta, P.stats.fuelLeft.cap - P.stats.fuelLeft.val), P.profit * 64);
                 P.stats.fuelLeft.val += delta;
-                P.profit -= Math.floor(delta / 64);
+                P.profit -= Math.ceil(delta / 64);
                 console.log('refuel ' + delta);
+                return delta;
             }     //16 units fuel per cred
             P.repair =  function(delta){
-                delta = Math.min(Math.min(delta, P.stats.fuselage.cap - P.stats.fuselage.val), P.stats.profit);
+                delta = Math.min(Math.min(delta, P.stats.fuselage.cap - P.stats.fuselage.val), P.profit / 2);
                 P.stats.fuselage.val += delta;
-                P.stats.profit -= delta;
-            }    //1 unit pepair per cred
+                P.profit -= delta * 2;
+                console.log('repair ' + delta);
+                return delta;
+            }    //0.5 unit pepair per cred
 
             
             function keyDownHandler(e){ console.log(e.which); E.K[e.which] = true; }
@@ -434,13 +438,23 @@
                 
                 E.msg(S);
             }
+            
             E.interface = function(t){
                 var S;
                 if(t == 'B'){
-                    S = '<center><h4>WORKSTATION</h4></center>';
-                    P.refuel(256);
+                    
+                    var ref = P.refuel(P.stats.fuelLeft.cap);
+                    var rep = P.repair(P.stats.fuselage.cap);
+                    
+                    S = '<center><h4>WORKSTATION</h4></center><br>' +
+                    '<div>YOUR CRAFT HAS BEEN REFUELED <b>' + ref + '</b> UNITS.</div>' +
+                    '<div>YOUR CRAFT HAS BEEN REPAIRED <b>' + rep + '</b> UNITS.</div>' +
+                    '<br><br><div>TOTAL COST: <b>' + (Math.ceil(ref / 16) + rep * 2) + '</b> CREDITS.</div>';
+                    
+                    S += '<div style = "font-size: 10px; margin-top: 60px">PRESS <b>ESC</b> TO CONTINUE</div>'
                 }
                 E.msg(S);
+                //E.hide(S); //placeholder
             }
             
             function endgame(){
