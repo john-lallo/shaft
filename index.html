@@ -25,6 +25,13 @@
                 margin: 0 0 16px 0;
             }
             
+            h4 {
+                font-size: 24px;
+                line-height: 0.8;
+                font-weight: bold;
+                margin: 0 0 16px 0;
+            }
+            
             #world{
                 position: relative;
                 display: inline-block;
@@ -53,7 +60,10 @@
             
             .P { color: #fff; background-color: #000; font-weight: bold; }
             .P-highlighted { color: #000; background-color: #fff; font-weight: bold; }
-                
+            
+            .Ba { color: #fff; background-color: #000; font-weight: bold; }
+            .Bb { color: #fff; background-color: #000; font-weight: bold; }
+            
             .A { color: #222; background-color: #000; }
             .E { color: #aaa; background-color: #fff; }
             
@@ -146,12 +156,15 @@
                 W.conf.sizeY = 40;
                 
                 W.conf.image = {
-                    'P': '&',   //[P]layer entity
+                    'P': '&',   // [P]layer entity
+                    
+                    'Ba': '&#10044;',   // [B]ase
+                    'Bb': '|',
                     
                     'A': '·',   // [A]ir
                     'E': '·',   // [E]arth
                     
-                    'O': '✶'    //[O]re
+                    'O': '.'    // [O]re
                 };
                 
                 W.genInit();
@@ -164,16 +177,22 @@
                 var depth;
                 
                 for(var i = 0; i < W.conf.sizeX; ++i){
-                depth = 4 + Math.floor(Math.random() * 8);
-                for(var j = 0; j < W.conf.sizeY; ++j){
-                    (j < (W.conf.sizeY - depth)) ? W[i][j] = 'A' : W[i][j] = 'E'; //earth surface
                     
-                    if (
-                    j > (W.conf.sizeY - depth + 8) &&
-                    Math.random() < (Math.pow(j, 3/2) * 0.0001)){
-                        W[i][j] = 'O';
+                    (4 < i && i < 9) ? depth = 14 : depth = 4 + Math.floor(Math.random() * 8);
+                    
+                    for(var j = 0; j < W.conf.sizeY; ++j){
+                        (j < (W.conf.sizeY - depth)) ? W[i][j] = 'A' : W[i][j] = 'E'; //earth surface
+                        
+                        if (j > (W.conf.sizeY - depth + 8) && Math.random() < (Math.pow(j, 3/2) * 0.0001)){
+                            W[i][j] = 'O';
+                        }
                     }
-                }}
+                }
+                
+                
+                //stations
+                W[6][ground(6) - 1] = 'Bb';
+                W[6][ground(6) - 2] = 'Ba';
                 
 
                 //project to screen
@@ -241,10 +260,14 @@
                 );
             }
             
-            function solid(x, y){ return (!valid(x, y) || !(W[x][y] == 'A')); }
+            function solid(x, y){ return (!valid(x, y) || !(W[x][y] == 'A' || W[x][y].slice(0, 1) == 'B')); }
             function footed(x, y){ return (solid(x, y + 1)); }
             
-            
+            function ground(x){
+                var y = 0;
+                while(!solid(x, y)){ ++y; }
+                return y;
+            }
             
             
             
@@ -252,10 +275,10 @@
             var P = []; //PLAYER ENTITY
             
             P.init = function(){
-                P.presX = 4;
+                P.presX = 8;
                 P.presY = 4;
                 
-                P.prevX = 4;
+                P.prevX = 6;
                 P.prevY = 4;
         
                 while(!solid(P.presX, P.presY + 3)){ P.move(0, 1); }
@@ -267,8 +290,8 @@
                 P.stats.fuselage.cap = 8;
                 
                 P.stats.fuelLeft = [];
-                P.stats.fuelLeft.val = 512;
-                P.stats.fuelLeft.cap = 512;
+                P.stats.fuelLeft.val = 1024;
+                P.stats.fuelLeft.cap = 1024;
                 
                 P.stats.efficiency = 2;
                 P.stats.engine = 0.5;
@@ -300,7 +323,7 @@
                 var L = N.length;
 
                 N = '</span><span>' + N + '</span>'
-                while(L < 12){ N = '0' + N; ++L; }
+                while(L < 11){ N = '0' + N; ++L; }
                 N = '<span style = "color: #444">' + N;
 
                 $('#' + name).html(N);
@@ -345,8 +368,14 @@
             P.update = function(){
                 
                 P.v += gravity;
-                if(E.K[38]){ P.v -= P.stats.engine; --P.stats.fuelLeft.val; }
-                if(E.K[40]){ footed(P.presX, P.presY) ? P.shove(0, 1) : P.v += P.stats.engine; --P.stats.fuelLeft.val; }
+                
+                P.stats.fuelLeft.val -= 1;
+                
+                if(E.K[38] && P.stats.fuelLeft.val > 0){ P.v -= P.stats.engine; --P.stats.fuelLeft.val; }
+                if(E.K[40] && P.stats.fuelLeft.val > 0){
+                    footed(P.presX, P.presY) ? P.shove(0, 1) : P.v += P.stats.engine;
+                    --P.stats.fuelLeft.val;
+                }
                 
                 var delta = 0;
                 var magnt = Math.abs(P.v);
@@ -358,22 +387,25 @@
                 }
                 
                 if(footed(P.presX, P.presY) && magnt > 1){ P.beep(); P.stats.fuselage.val -= Math.ceil(magnt); }
+
+                if(footed(P.presX, P.presY)){ P.v = 0; }                    
+        
+                if(E.K[39] && P.stats.fuelLeft.val > 0){ P.shove(1, 0); }
+                if(E.K[37] && P.stats.fuelLeft.val > 0){ P.shove(-1, 0); }
                 
                 
-                
-                if(footed(P.presX, P.presY)){ P.v = 0; }
-                
-                if(E.K[39]){ P.shove(1, 0); }
-                if(E.K[37]){ P.shove(-1, 0); }
-                
+
             }
             
             var T;
+            var buffer;
+            
             E.initgame = function(){
                 E.K = [];
                 W.init();
                 P.init();
                 T = true;
+                buffer = false;
             }
             E.msg = function(str){
                 $('#world').append(
@@ -382,7 +414,9 @@
                     + str +
                     '</div></div>'
                 );
+                T = false;
             }
+            E.hide = function(str){ $('#overlay').remove(); T = true; }
             E.declareDeath = function(cod){
                 var S = '<center><h3>GAME<br>OVER</h3>';
                 S += cod;
@@ -391,10 +425,19 @@
                 
                 E.msg(S);
             }
+            E.interface = function(t){
+                var S;
+                if(t == 'B'){
+                    S = '<center><h4>BASE</h4></center>'
+                }
+                E.msg(S);
+            }
             
             function endgame(){
                 if(P.stats.fuselage.val <= 0){ return 'FATAL DAMAGE'; }
-                if(P.stats.fuelLeft.val <= 0){ return 'FUEL DEPLETED'; }
+                if(P.stats.fuelLeft.val <= 0 && footed(P.presX, P.presY)){
+                    return 'FUEL DEPLETED';
+                }
                 return 0;
             }
             $(document).ready(function(){
@@ -413,24 +456,37 @@
                     //TIMESTEPS ON
                     P.update();
     
+                    //display stats interface
                     showProg('fuelLeft', P.stats.fuelLeft.val, P.stats.fuelLeft.cap);
                     showProg('fuselage', P.stats.fuselage.val, P.stats.fuselage.cap);
                     showVal('profit', P.profit);
-                    //P.render();
                     
+                    //scroll and procedural generation
                     if(P.presY < W.depth() + 6){ W.scroll(-1); }                
                     if(P.presY > W.depth() + (40 - 6)){ W.scroll(1); }
                     if(P.presY > W.conf.sizeY - 6){ W.genNext(); }
                     
-                    var eg = endgame();
-                    if(eg != 0){
-                        T = false;
-                        
-                        E.declareDeath(eg);
+                    //interface checks
+                    
+                    if (W[P.presX][P.presY].slice(0, 1) == 'B'){
+                        if(!buffer){
+                            buffer = true;
+                            E.interface('B');
+                        }
+                    } else {
+                        buffer = false;
                     }
+                    
+                    
+                    //endgame checks
+                    var eg = endgame();
+                    if(eg != 0){ E.declareDeath(eg); }
+                    
                 } else {
-                    //TIME PAUSED
+                    //TIME PAUSED - in interface or dead.
+                    if(E.K[27] /* esc */ ){ E.hide(); } 
                 }
+                
                 if(E.K[81]){ E.initgame(); } 
             }
 
