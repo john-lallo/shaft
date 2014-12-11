@@ -12,11 +12,18 @@
                 color: #fff;
                 background-color: #000;
                 
-                font-size: 14px;
+                font-size: 16px;
                 font-family: monospace;
             }
-                
+            
+            h3 {
+                font-size: 24px;
+                font-weight: bold;
+                margin: 0 0 8px 0;
+            }
+            
             #world{
+                position: relative;
                 display: inline-block;
                 
                 width: 640px;
@@ -39,12 +46,17 @@
                 
                 text-align: center;
             }
+            
+            
             .P { color: #fff; background-color: #000; font-weight: bold; }
             .P-highlighted { color: #000; background-color: #fff; font-weight: bold; }
                 
             .A { color: #222; background-color: #000; }
             .E { color: #aaa; background-color: #fff; }
-                
+            
+            .O { color: #ccc; background-color: #ccc; }
+            
+            
             #stats {
                 display: inline-block;
                 
@@ -81,39 +93,88 @@
                 
                 background-color: #fff;
             }
+            
+            .valbox {
+                position: relative;
+                
+                width: 128px;
+                
+                margin: 0 auto 8px auto;
+                text-align: right;
+                font-size: 19px;
+                font-weight: bold;
+            }
+            
+            #overlay{
+                position: absolute;
+                
+                height: 100%;
+                bottom: 0;
+                left: 0;
+                right: 0;
+                background-color: rgba(0, 0, 0, 0.8);
+            }
+            
+            .panel {
+                margin-top: 240px;
+                
+                color: #fff;
+                background-color: #000;
+                
+                display: inline-block;
+                padding: 32px;
+                
+                vertical-align: middle;
+                
+                outline: 4px solid #000;
+                border: 2px solid #fff;
+            }
 		</style>
 	    <script src = "jquery-2.1.1.min.js"></script>
 	    <script>
 	    
             var W = []; //WORLD ENVIRONMENT
             
-            W.conf = [];
-            W.elem = [];
-            
-            W.conf.sizeX = 40;
-            W.conf.sizeY = 40;
-            
-            function sane(x, y){ return { x: Math.min(Math.max(0, x), W.conf.sizeX - 1), y: Math.min(Math.max(0, y), W.conf.sizeY - 1) }; }
-            function valid(x, y){ return (x >= 0 && x < W.conf.sizeX && y >= 0 && y < W.conf.sizeY); }
-            W.conf.image = {
-                'P': '&',
+            W.init = function(){
+                W.conf = [];
+                W.elem = [];
                 
-                'A': '·',   // [A]ir
-                'E': '·'   // [E]arth
-            };
+                W.conf.sizeX = 40;
+                W.conf.sizeY = 40;
+                
+                W.conf.image = {
+                    'P': '&',   //[P]layer entity
+                    
+                    'A': '·',   // [A]ir
+                    'E': '·',   // [E]arth
+                    
+                    'O': '✶'    //[O]re
+                };
+                
+                W.genInit();
+            }
             
             W.genInit = function(){
+                //construct map
                 for(var i = 0; i < W.conf.sizeX; ++i){ W[i] = []; }
                 
                 var depth;
                 
                 for(var i = 0; i < W.conf.sizeX; ++i){
-                depth = 8 + Math.floor(Math.random() * 8);
+                depth = 4 + Math.floor(Math.random() * 8);
                 for(var j = 0; j < W.conf.sizeY; ++j){
-                    (j < (W.conf.sizeY - depth)) ? W[i][j] = 'A' : W[i][j] = 'E';
+                    (j < (W.conf.sizeY - depth)) ? W[i][j] = 'A' : W[i][j] = 'E'; //earth surface
+                    
+                    if (
+                    j > (W.conf.sizeY - depth + 8) &&
+                    Math.random() < (Math.pow(j, 3/2) * 0.0001)){
+                        W[i][j] = 'O';
+                    }
                 }}
                 
 
+                //project to screen
+                $('#world').html('');
                 for(var i = 0; i < W.conf.sizeX; ++i){ W.elem[i] = []; }
 
                 for(var j = 0; j < W.conf.sizeY; ++j){
@@ -131,7 +192,7 @@
             W.genNext = function(){
                 for(var i = 0; i < W.conf.sizeX; ++i){
                 for(var j = W.conf.sizeY; j < W.conf.sizeY + 8; ++j){
-                        W[i][j] = 'E';
+                    (Math.random() < (Math.pow(j, 3/2) * 0.0001)) ? W[i][j] = 'O': W[i][j] = 'E';
                 }}
 
                 for(var j = W.conf.sizeY; j < W.conf.sizeY + 8; ++j){                
@@ -154,9 +215,27 @@
             
             W.altr = function(x, y, t){
                 if(valid(x, y)){
+                    
+                if(W[x][y] == 'O' && t == 'A'){ P.profit += 4; }
+                
                 W[x][y] = t;
                 W.elem[x][y].attr('class', 'e ' + t).html(W.conf.image[t]);
                 }
+            }
+            
+            function sane(x, y){
+                    return {
+                        x: Math.min(Math.max(0, x), W.conf.sizeX - 1),
+                        y: Math.min(Math.max(0, y), W.conf.sizeY - 1)
+                    };
+                }
+            function valid(x, y){
+                return (
+                x >= 0 &&
+                x < W.conf.sizeX &&
+                y >= 0 &&
+                y < W.conf.sizeY
+                );
             }
             
             function solid(x, y){ return (!valid(x, y) || !(W[x][y] == 'A')); }
@@ -164,31 +243,39 @@
             
             
             
+            
+            
+            
             var P = []; //PLAYER ENTITY
             
-            P.presX = 4;
-            P.presY = 4;
-            
-            P.prevX = 4;
-            P.prevY = 4;
+            P.init = function(){
+                P.presX = 4;
+                P.presY = 4;
+                
+                P.prevX = 4;
+                P.prevY = 4;
+        
+                while(!solid(P.presX, P.presY + 3)){ P.move(0, 1); }
+        
+                P.stats = [];
+        
+                P.stats.fuselage = [];
+                P.stats.fuselage.val = 8;
+                P.stats.fuselage.cap = 8;
+                
+                P.stats.fuelLeft = [];
+                P.stats.fuelLeft.val = 512;
+                P.stats.fuelLeft.cap = 512;
+                
+                P.stats.efficiency = 2;
+                P.stats.engine = 0.5;
+                
+                P.progress = 0;
     
-            P.stats = [];
-    
-            P.stats.fuselage = [];
-            P.stats.fuselage.val = 8;
-            P.stats.fuselage.cap = 8;
-            
-            P.stats.fuelLeft = [];
-            P.stats.fuelLeft.val = 512;
-            P.stats.fuelLeft.cap = 512;
-            
-            P.stats.efficiency = 2;
-            P.stats.engine = 0.5;
-            
-            P.progress = 0;
-
-            P.profit = 0;
-
+                P.profit = 0;
+                
+                P.v = 0;
+            }
 
             P.render = function(){
                 W.elem[P.prevX][P.prevY].attr('class', 'e ' + W[P.prevX][P.prevY]);
@@ -204,8 +291,16 @@
                 }, 50);
             }
         
-            function showProg(name, val, cap){
-                $('#' + name).css('width', 8 * Math.ceil(16 * val / cap));
+            function showProg(name, val, cap){ $('#' + name).css('width', 8 * Math.ceil(16 * val / cap)); }
+            function showVal(name, val){
+                var N = val.toString();
+                var L = N.length;
+
+                N = '</span><span>' + N + '</span>'
+                while(L < 12){ N = '0' + N; ++L; }
+                N = '<span style = "color: #444">' + N;
+
+                $('#' + name).html(N);
             }
     
             var E = [];
@@ -233,12 +328,14 @@
                     }
                 }
             }
+            
+            
+            
 
             
-            function keyDownHandler(e){ E.K[e.which] = true; }
+            function keyDownHandler(e){ console.log(e.which); E.K[e.which] = true; }
             function keyUpHandler(e){ E.K[e.which] = false; }
             
-            P.v = 0;
             var gravity = 0.2;
             
             
@@ -265,13 +362,40 @@
                 
                 if(E.K[39]){ P.shove(1, 0); }
                 if(E.K[37]){ P.shove(-1, 0); }
+                
             }
             
-            function endgame(){ return !(P.stats.fuselage.val > 0 && P.stats.fuelLeft.val > 0); }
+            var T;
+            E.initgame = function(){
+                E.K = [];
+                W.init();
+                P.init();
+                T = true;
+            }
+            E.msg = function(str){
+                $('#world').append(
+                    '<div id = "overlay" style = "top:' + $('#world').scrollTop() + 'px">' +
+                    '<div class = "panel">'
+                    + str +
+                    '</div></div>'
+                );
+            }
+            E.declareDeath = function(cod){
+                var S = '<center><h3>GAME OVER</h3>';
+                S += cod;
+                S += '</center>';
+                
+                E.msg(S);
+            }
             
+            function endgame(){
+                if(P.stats.fuselage.val <= 0){ return 'FATAL DAMAGE'; }
+                if(P.stats.fuelLeft.val <= 0){ return 'FUEL DEPLETED'; }
+                return 0;
+            }
             $(document).ready(function(){
-                W.genInit();
-                //W.genNext();
+                
+                E.initgame();
             
                 $(document).keydown(keyDownHandler);
                 $(document).keyup(keyUpHandler);
@@ -279,21 +403,30 @@
                 setInterval(timestep, 100);
             });
             
-            
-            var T = true;
+
             function timestep(){
                 if(T){
+                    //TIMESTEPS ON
                     P.update();
     
                     showProg('fuelLeft', P.stats.fuelLeft.val, P.stats.fuelLeft.cap);
                     showProg('fuselage', P.stats.fuselage.val, P.stats.fuselage.cap);
+                    showVal('profit', P.profit);
                     //P.render();
                     
                     if(P.presY < W.depth() + 6){ W.scroll(-1); }                
                     if(P.presY > W.depth() + (40 - 6)){ W.scroll(1); }
                     if(P.presY > W.conf.sizeY - 6){ W.genNext(); }
                     
-                    if(endgame()){ T = false; console.log('GAME OVER'); }
+                    var eg = endgame();
+                    if(eg != 0){
+                        T = false;
+                        
+                        E.declareDeath(eg);
+                    }
+                    if(E.K[81]){ E.initgame(); } 
+                } else {
+                    //TIME PAUSED
                 }
             }
 
@@ -307,6 +440,9 @@
         </div>
 
         <div id = "stats">
+            <div class = 'label'>PROFIT</div>
+            <div id = 'profit' class = 'valbox'></div>
+
             <div class = 'label'>FUSELAGE</div>
             <div class = 'progbar'><div id = 'fuselage' class = 'bar'></div></div>
             
