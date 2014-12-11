@@ -1,453 +1,454 @@
 <!DOCTYPE HTML>
 <html>
 	<head>
+	    <meta charset = 'utf-8'>
 		<title>shaft-dev</title>
 		<style>
-			html, body {
-				color: #ffffff;
-				background-color: #000000;
-
-				width: 100%;
-				padding: 0;
-				margin: 0;
-
-				font-family: monospace;
-				font-weight: bold;
-			}
-
-			h3 {
-				font-size: 24px;
-				margin: 8px 0;
-			}
-
-			#world {
-				width: 640px;
-				height: 640px;
-				outline: 2px solid #ffffff;
-
-				margin-top: 8px;
-				margin-left: auto;
-				margin-right: auto;
-			
-				overflow: hidden;
-				position: relative;
-			}
-
-			.overlay {
-				position: fixed;
-				bottom: 0;	left: 0;
-				top: 0;		right: 0;
-				text-align: center;
-				
-				z-index: 9;
-			}
-
-			.msg{
-
-				display:inline-block;
-				text-align: center;
-
-				padding: 32px 96px;
-
-				outline: 2px solid #000000;
-				border: 2px solid #ffffff;
-
-				color: #ffffff;
-				background-color: #000000;
-
-				margin-top: 240px;
-			}
-
-			#panel {
-				width: 640px;
-				margin-left: auto;
-				margin-right: auto;
-			}
-
-			.panel-row {
-				width: 640px;
-				height: 16px;
-				/*outline: 2px solid #222222;*/
-
-				text-align: right;
-
-				margin-top: 16px;			
-			}
-
-			.label {
-				height: 16px;				
-				width: 80px;
-
-				display: inline-block;
-			}
-
-			.prog {
-				height: 16px;				
-				width: 128px;
-
-				outline: 2px solid #ffffff;
-				display: inline-block;
-			}
-
-			.progbar {
-				background-color: #ffffff;
-				height: 16px;
-				width: 16px;
-				display: inline-block
-			}
-
-			.e {
-				color: #000000;
-				background-color: #ffffff;
-
-				text-align: center;
-
-				width: 16px;
-				height: 16px;
-	
-				margin: 0;
-				padding: 0;
-
-				display: inline-block;
-			}
-
-			.C { color: #ffffff; background-color: #000000; }
-			.beep { color: #000000; background-color: #ffffff; }
-			.A { color: #222222; background-color: #000000; }
-			.E { color: #aaaaaa; background-color: #ffffff; }
-			
+            html, body{
+                width: 100%;
+                padding: 0;
+                margin: 0;
+                
+                color: #fff;
+                background-color: #000;
+                
+                font-size: 16px;
+                font-family: monospace;
+            }
+            
+            h3 {
+                font-size: 24px;
+                font-weight: bold;
+                margin: 0 0 8px 0;
+            }
+            
+            #world{
+                position: relative;
+                display: inline-block;
+                
+                width: 640px;
+                height: 640px;
+                
+                margin: 8px 4px;
+                
+                outline: 2px solid #fff;
+                
+                line-height: 1;
+                
+                overflow: hidden;
+            }
+                
+            .e{
+                display: inline-block;
+                
+                width: 16px;
+                height: 16px;
+                
+                text-align: center;
+            }
+            
+            
+            .P { color: #fff; background-color: #000; font-weight: bold; }
+            .P-highlighted { color: #000; background-color: #fff; font-weight: bold; }
+                
+            .A { color: #222; background-color: #000; }
+            .E { color: #aaa; background-color: #fff; }
+            
+            .O { color: #ccc; background-color: #ccc; }
+            
+            
+            #stats {
+                display: inline-block;
+                
+                width: 136px;
+                height: 640px;
+                
+                margin: 8px 4px;
+                
+                /*outline: 2px solid #fff;*/
+                
+                overflow: hidden;
+            }
+                
+            .label {
+                text-align: left;
+            }
+                
+            .progbar {
+                position: relative;
+                
+                height: 12px;
+                width: 128px;
+                outline: 2px solid #fff;
+                
+                margin: 4px auto 8px auto;
+                text-align: left;
+            }
+                
+            .bar {
+                position: absolute;
+                left: 0;
+                bottom: 0;
+                top: 0;
+                
+                background-color: #fff;
+            }
+            
+            .valbox {
+                position: relative;
+                
+                width: 128px;
+                
+                margin: 0 auto 8px auto;
+                text-align: right;
+                font-size: 19px;
+                font-weight: bold;
+            }
+            
+            #overlay{
+                position: absolute;
+                
+                height: 100%;
+                bottom: 0;
+                left: 0;
+                right: 0;
+                background-color: rgba(0, 0, 0, 0.8);
+            }
+            
+            .panel {
+                margin-top: 240px;
+                
+                color: #fff;
+                background-color: #000;
+                
+                display: inline-block;
+                padding: 32px;
+                
+                vertical-align: middle;
+                
+                outline: 4px solid #000;
+                border: 2px solid #fff;
+            }
 		</style>
+	    <script src = "jquery-2.1.1.min.js"></script>
+	    <script>
+	    
+            var W = []; //WORLD ENVIRONMENT
+            
+            W.init = function(){
+                W.conf = [];
+                W.elem = [];
+                
+                W.conf.sizeX = 40;
+                W.conf.sizeY = 40;
+                
+                W.conf.image = {
+                    'P': '&',   //[P]layer entity
+                    
+                    'A': '·',   // [A]ir
+                    'E': '·',   // [E]arth
+                    
+                    'O': '✶'    //[O]re
+                };
+                
+                W.genInit();
+            }
+            
+            W.genInit = function(){
+                //construct map
+                for(var i = 0; i < W.conf.sizeX; ++i){ W[i] = []; }
+                
+                var depth;
+                
+                for(var i = 0; i < W.conf.sizeX; ++i){
+                depth = 4 + Math.floor(Math.random() * 8);
+                for(var j = 0; j < W.conf.sizeY; ++j){
+                    (j < (W.conf.sizeY - depth)) ? W[i][j] = 'A' : W[i][j] = 'E'; //earth surface
+                    
+                    if (
+                    j > (W.conf.sizeY - depth + 8) &&
+                    Math.random() < (Math.pow(j, 3/2) * 0.0001)){
+                        W[i][j] = 'O';
+                    }
+                }}
+                
 
-	<script src="jquery-2.1.1.min.js"></script>
+                //project to screen
+                $('#world').html('');
+                for(var i = 0; i < W.conf.sizeX; ++i){ W.elem[i] = []; }
 
-	<script language = 'javascript'>
-		/*...................................World Construction.........*/
-		var sizeX = 40;
-		var sizeY = 40;
+                for(var j = 0; j < W.conf.sizeY; ++j){
+                for(var i = 0; i < W.conf.sizeX; ++i){
 
-		var depth = 0;
+                    $('#world').append('<div class = "e ' + W[i][j] +
+                    '" id = "' + i + '-' + j + '">'
+                    + W.conf.image[W[i][j]] +
+                    '</div>');
+                    
+                    W.elem[i][j] = $('#' + i + '-' + j);
+                
+                }}
+            }
+            W.genNext = function(){
+                for(var i = 0; i < W.conf.sizeX; ++i){
+                for(var j = W.conf.sizeY; j < W.conf.sizeY + 8; ++j){
+                    (Math.random() < (Math.pow(j, 3/2) * 0.0001)) ? W[i][j] = 'O': W[i][j] = 'E';
+                }}
 
-		//initialization of player entity
-		var prevX = 4;
-		var prevY = 4;
+                for(var j = W.conf.sizeY; j < W.conf.sizeY + 8; ++j){                
+                for(var i = 0; i < W.conf.sizeX; ++i){
 
-		var presX = 4;
-		var presY = 4;
+                    $('#world').append('<div class = "e ' + W[i][j] +
+                    '" id = "' + i + '-' + j + '">'
+                    + W.conf.image[W[i][j]] +
+                    '</div>');
+                    
+                    W.elem[i][j] = $('#' + i + '-' + j);
+                
+                }}
+                
+                W.conf.sizeY += 8;
+            }
 
-		var fuelLeft = 8;
-		var fuselage = 8;
-		var progress = 0;
-
-    	var world = [];
-
-		// procedural generation for world
-		function gnrtInit(){
-
-    		// initialization of world map
-    		for(var i = 0; i < sizeY; ++i){ world[i] = []; }
+            W.scroll = function(delta){ $('#world').scrollTop($('#world').scrollTop() + delta * 16); }
+            W.depth = function(){ return $('#world').scrollTop() / 16; }
+            
+            W.altr = function(x, y, t){
+                if(valid(x, y)){
+                    
+                if(W[x][y] == 'O' && t == 'A'){ P.profit += 4; }
+                
+                W[x][y] = t;
+                W.elem[x][y].attr('class', 'e ' + t).html(W.conf.image[t]);
+                }
+            }
+            
+            function sane(x, y){
+                    return {
+                        x: Math.min(Math.max(0, x), W.conf.sizeX - 1),
+                        y: Math.min(Math.max(0, y), W.conf.sizeY - 1)
+                    };
+                }
+            function valid(x, y){
+                return (
+                x >= 0 &&
+                x < W.conf.sizeX &&
+                y >= 0 &&
+                y < W.conf.sizeY
+                );
+            }
+            
+            function solid(x, y){ return (!valid(x, y) || !(W[x][y] == 'A')); }
+            function footed(x, y){ return (solid(x, y + 1)); }
+            
+            
+            
+            
+            
+            
+            var P = []; //PLAYER ENTITY
+            
+            P.init = function(){
+                P.presX = 4;
+                P.presY = 4;
+                
+                P.prevX = 4;
+                P.prevY = 4;
+        
+                while(!solid(P.presX, P.presY + 3)){ P.move(0, 1); }
+        
+                P.stats = [];
+        
+                P.stats.fuselage = [];
+                P.stats.fuselage.val = 8;
+                P.stats.fuselage.cap = 8;
+                
+                P.stats.fuelLeft = [];
+                P.stats.fuelLeft.val = 512;
+                P.stats.fuelLeft.cap = 512;
+                
+                P.stats.efficiency = 2;
+                P.stats.engine = 0.5;
+                
+                P.progress = 0;
     
-    		for(var i = 0; i < sizeY; ++i){
-    		for(var j = 0; j < sizeX; ++j){
-    			world[i][j] = 'A';
-    		}
-    		}
+                P.profit = 0;
+                
+                P.v = 0;
+            }
 
-			//earth
-			for(var i = 0; i < sizeX; ++i){
-				var depth = sizeY - 40 + Math.floor(Math.random() * 12 + 1);
-				for(var j = sizeY; j >= sizeY - depth; --j){
-					world[i][j] = 'E';
-				}
-			}
-		}
+            P.render = function(){
+                W.elem[P.prevX][P.prevY].attr('class', 'e ' + W[P.prevX][P.prevY]);
+                W.elem[P.prevX][P.prevY].html(W.conf.image[W[P.prevX][P.prevY]]);
+                
+                W.elem[P.presX][P.presY].attr('class', 'e P');
+                W.elem[P.presX][P.presY].html(W.conf.image['P']);
+            }
+            P.beep = function(){
+                W.elem[P.presX][P.presY].attr('class', 'e P-highlighted');
+                setTimeout(function(){
+                    W.elem[P.presX][P.presY].attr('class', 'e P');
+                }, 50);
+            }
+        
+            function showProg(name, val, cap){ $('#' + name).css('width', 8 * Math.ceil(16 * val / cap)); }
+            function showVal(name, val){
+                var N = val.toString();
+                var L = N.length;
 
-        function gnrtNext(){
-            for(var i = sizeY; i < sizeY + 16; ++i){ world[i] = [];
-        	for(var j = 0; j < sizeX; ++j){ world[i][j] = 'E'; }}
-        	
-			for(var i = sizeY; i < sizeY + 16; ++i){
-			for(var j = 0; j < sizeX; ++j){
-				$("#world").append(
-					'<div class = "e ' + world[i][j] + '" id = "' + j + '-' + i +
-					'">' + image[world[i][j]] + '</div>'
-				);
-				$('.msg').css('marginTop', (240 + depth * 16) + 'px');
-			}}
-        	
-        	
-            sizeY += 16;
-        }
+                N = '</span><span>' + N + '</span>'
+                while(L < 12){ N = '0' + N; ++L; }
+                N = '<span style = "color: #444">' + N;
 
-		// project world image to screen
-		function project(){
-			for(var j = 0; j < sizeY; ++j){
-			for(var i = 0; i < sizeX; ++i){
-				$("#world").append(
-					'<div class = "e ' + world[i][j] + '" id = "' + i + '-' + j +
-					'">' + image[world[i][j]] + '</div>'
-				);
-				$('.msg').css('marginTop', (240 + depth * 16) + 'px');
-			}}
-		}
-		
-		//return corresponding element as jQ entity
-		function elem(i, j){ return $('#' + i + '-' + j); }
-
-
-		/*...................................Interface Updating.........*/
-		function showProgress(id, val){
-			$("#" + id).css('width', 8 * Math.ceil(2 * val - 0.001) + 'px');
-		}
-		
-
-		function showMsg(msg){
-			$('.overlay').append('<div class = "msg">'
-				+ msg +
-			'</div>');
-		}
-
-		function declareDeath(msg){
-			//console.log('eh');
-			craftBeep();
-			var str = '<h3>GAME OVER</h3>';
-			str += msg;
-			showMsg(str);
-		}
-
-
-
-		/*...................................World Altering.........*/
-
-		// map data from code to image
-		var image = {
-			'C': '&',	//[C]raft
-			'R': '+',	//[R]epair station
-			'V': '$',	//[V]endor
-
-			'A': '.',	//[A]ir
-			'E': '.'	//[E]arth
-		}
-
-		// change cell e to state t
-		function altr(x, y, t){
-		    world[x][y] = t;
-
-			e = elem(x, y);
-			console.log(e.attr('id'));
-			e.attr('class', 'e ' + t);
-			e.html(image[t]);
-		}
-
-		var depth = 0;
-		function scroll(dx){
-			depth += dx;
-			$('#world').scrollTop(16 * depth);
-		}
-
-		//move player by (dx, dy)
-		function move(dx, dy){
-			prevX = presX;
-			prevY = presY;
-
-			//clear previous player image
-			altr(prevX, prevY, world[prevX][prevY]);
-
-			//validate new coordinates
-			var c = sane(presX + dx, presY + dy);
-			presX = c.x;
-			presY = c.y;
-
-			//current player image
-			e = elem(presX, presY);
-			e.attr('class', 'e');
-			e.addClass('C');
-			e.html(image['C']);
-		}
-
-		//attempt to move, excavate if blocked
-		function shove(dx, dy){
-			if(solid(presX + dx, presY + dy)){
-				if(footed(presX, presY) && isSane(presX + dx, presY + dy)){
-					fuelLeft -= 0.01;
-					if(progress < 8){ progress += 2; }
-					else { progress = 0; altr(presX + dx, presY + dy, 'A'); }
-				}
-			} else {
-				move(dx, dy);
-			}
-		}
-
-		
-
-		function craftBeep(){
-			var craft = $('.C');
-			craft.addClass('beep');
-			setTimeout(function(){craft.removeClass('beep');}, 100);
-		}
-
-
-
-		//some handy check functions
-		function isSane(x, y){
-			return ((x >= 0) && (x < sizeX) &&
-					(y >= 0) && (y < sizeY));
-		}
-		function sane(x, y) {
-			return {
-				'x': Math.min(Math.max(x, 0), sizeX),
-				'y': Math.min(Math.max(y, 0), sizeY)
-				};
-		}
-		function footed(x, y){ return world[x][y + 1] != 'A'; }
-		function solid(x, y){
-			if(!isSane(x, y)){ return 1; }
-			return world[x][y] != 'A';
-		}
-
-
-		/*...................................Initiation.........*/
-		$(document).ready(function(){
-
-			// construct world scene.
-			gnrtInit();
-            project();
+                $('#' + name).html(N);
+            }
+    
+            var E = [];
+            E.K = [];
             
-            gnrtNext();
+            P.move = function(dx, dy){
+                P.prevX = P.presX; P.prevY = P.presY;
+                
+                var C = sane(P.presX + dx, P.presY + dy);
+                P.presX = C.x; P.presY = C.y;
+                
+                P.render();
+            }
+            P.shove = function(dx, dy){
+                if(!solid(P.presX + dx, P.presY + dy)){
+                    P.move(dx, dy);
+                } else {
+                    if(footed(P.presX, P.presY)){
+                        P.progress += P.stats.efficiency;
+                        --P.stats.fuelLeft.val;
+                        if(P.progress >= 8){
+                            P.progress = 0;
+                            W.altr(P.presX + dx, P.presY + dy, 'A');   
+                        }
+                    }
+                }
+            }
             
-			$(document).keydown(keyDownHandler);
-			$(document).keyup(keyUpHandler);
-			//timestep();
+            
+            
 
-			setInterval(timestep, 50);
+            
+            function keyDownHandler(e){ console.log(e.which); E.K[e.which] = true; }
+            function keyUpHandler(e){ E.K[e.which] = false; }
+            
+            var gravity = 0.2;
+            
+            
+            P.update = function(){
+                
+                P.v += gravity;
+                if(E.K[38]){ P.v -= P.stats.engine; --P.stats.fuelLeft.val; }
+                if(E.K[40]){ footed(P.presX, P.presY) ? P.shove(0, 1) : P.v += P.stats.engine; --P.stats.fuelLeft.val; }
+                
+                var delta = 0;
+                var magnt = Math.abs(P.v);
+                if (P.v > 0){ delta = 1; } else if (P.v < 0){ delta = -1; }
+                
+                for(var i = 0; i < magnt; ++i){
+                    if(!solid(P.presX, P.presY + delta)){ P.move(0, delta); }
+                    else { P.v = 0; break; }
+                }
+                
+                if(footed(P.presX, P.presY) && magnt > 1){ P.beep(); P.stats.fuselage.val -= Math.ceil(magnt); }
+                
+                
+                
+                if(footed(P.presX, P.presY)){ P.v = 0; }
+                
+                if(E.K[39]){ P.shove(1, 0); }
+                if(E.K[37]){ P.shove(-1, 0); }
+                
+            }
+            
+            var T;
+            E.initgame = function(){
+                E.K = [];
+                W.init();
+                P.init();
+                T = true;
+            }
+            E.msg = function(str){
+                $('#world').append(
+                    '<div id = "overlay" style = "top:' + $('#world').scrollTop() + 'px">' +
+                    '<div class = "panel">'
+                    + str +
+                    '</div></div>'
+                );
+            }
+            E.declareDeath = function(cod){
+                var S = '<center><h3>GAME OVER</h3>';
+                S += cod;
+                S += '</center>';
+                
+                E.msg(S);
+            }
+            
+            function endgame(){
+                if(P.stats.fuselage.val <= 0){ return 'FATAL DAMAGE'; }
+                if(P.stats.fuelLeft.val <= 0){ return 'FUEL DEPLETED'; }
+                return 0;
+            }
+            $(document).ready(function(){
+                
+                E.initgame();
+            
+                $(document).keydown(keyDownHandler);
+                $(document).keyup(keyUpHandler);
+        
+                setInterval(timestep, 100);
+            });
+            
 
-		});
+            function timestep(){
+                if(T){
+                    //TIMESTEPS ON
+                    P.update();
+    
+                    showProg('fuelLeft', P.stats.fuelLeft.val, P.stats.fuelLeft.cap);
+                    showProg('fuselage', P.stats.fuselage.val, P.stats.fuselage.cap);
+                    showVal('profit', P.profit);
+                    //P.render();
+                    
+                    if(P.presY < W.depth() + 6){ W.scroll(-1); }                
+                    if(P.presY > W.depth() + (40 - 6)){ W.scroll(1); }
+                    if(P.presY > W.conf.sizeY - 6){ W.genNext(); }
+                    
+                    var eg = endgame();
+                    if(eg != 0){
+                        T = false;
+                        
+                        E.declareDeath(eg);
+                    }
+                    if(E.K[81]){ E.initgame(); } 
+                } else {
+                    //TIME PAUSED
+                }
+            }
 
-		/*...................................Controls.........*/
-		var K = [];
-
-		function keyDownHandler(e){	K[e.which] = 1; }
-		function keyUpHandler(e){ K[e.which] = 0; progress = 0; }
-		/*
-		UP 38
-		LEFT 37
-		DOWN 40
-		RIGHT 39
-		*/
-
-
-		/*...................................Timestep.........*/
-
-		var T = true;
-
-		var fallAccul = 0;
-		var inter = 1;
-
-		var v = 0;
-		var inv_v = [ 3, 2, 1, 1, 1];
-
-		function timestep(){
-
-			if(T == false) return;
-
-			//check for end game
-			if(footed(presX, presY)){
-				if(fuelLeft <= 0){declareDeath('FUEL DEPLETED'); T = false; }
-				if(fuselage <= 0){declareDeath('FATAL DAMAGE');  T = false; }
-			}
-
-
-
-			//.....................update map & render player character
-			
-			if(K[38]){ v -= 0.4; fuelLeft -= 0.01; } // UP
-			if(K[40] && (!footed(presX, presY))){ v += 0.2; } // DOWN
-
-			v += 0.2; //gravity
-
-			//track & check for fall damage		
-			if(v < -3){ v = -3; }
-			else if(v > 3){ v = 3; fallAccul += 0.5; }
-			else { fallAccul = 0; }
-
-			if(footed(presX, presY) && (fallAccul > 0)){
-			fuselage -= fallAccul; craftBeep(); fallAccul = 0;
-			}
-
-			
-			//update movement of craft
-			if(inter % inv_v[Math.floor(Math.abs(v))] == 0){
-				if(v > 0){
-					if(!footed(presX, presY)){
-						inter = 1; move(0, 1);
-					} else {
-						v = 0;
-					}
-				} else if (v < 0) {
-					if(!solid(presX, presY - 1)){
-						inter = 1; move(0, -1);
-					} else {
-						v = 0;
-					}
-				}
-			} else { ++inter; }
-			
-			if(K[39]) { shove(1, 0);  } // RIGHT			
-			if(K[37]) { shove(-1, 0); } // LEFT
-			if(K[40] && (footed(presX, presY))){ shove(0, 1); } // DOWN
-
-
-			//.....................update scroll
-			if(presY < (depth + 8)){ scroll(-1); }
-			else if (presY > (depth + 32)){ scroll(1); }
-			if(presY > sizeY - 12){ gnrtNext(); }
-
-
-			//.....................misc.
-			//fuelLeft -= 0.002;
-
-
-			//.....................update interface
-			showProgress('progress', progress);
-			showProgress('fuselage', fuselage);
-			showProgress('fuelLeft', fuelLeft);
-
-
-
-			//window.requestAnimationFrame(timestep);
-		}
-	</script>
+	    </script>
 	</head>
 
 	<body>
-		<div id = "world">
-			<div class = "overlay">
+	<div style = "text-align: center; width: 100%; padding: 32px 0">
+        <div id = "world">
+        
+        </div>
 
-			</div>
-		</div>
+        <div id = "stats">
+            <div class = 'label'>PROFIT</div>
+            <div id = 'profit' class = 'valbox'></div>
 
-		<div id = "panel">
-				<div class = "panel-row">
-					<div class = "label">FUSELAGE</div>
-					<div class = "prog">
-					<div id = "fuselage" class = "progbar">
-					</div></div>
-				</div>
-
-				<div class = "panel-row">
-					<div class = "label">FUEL</div>
-					<div class = "prog">
-					<div id = "fuelLeft" class = "progbar">
-					</div></div>
-				</div>
-
-
-				<div class = "panel-row">
-					<div class = "label">EXCAVATION</div>
-					<div class = "prog">
-					<div id = "progress" class = "progbar">
-					</div></div>
-				</div>
-		</div>
-
+            <div class = 'label'>FUSELAGE</div>
+            <div class = 'progbar'><div id = 'fuselage' class = 'bar'></div></div>
+            
+            <div class = 'label'>FUEL</div>
+            <div class = 'progbar'><div id = 'fuelLeft' class = 'bar'></div></div>
+        </div>
+    </div>
 	</body>
 </html>
