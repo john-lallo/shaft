@@ -355,8 +355,17 @@
                 }
             }
             
-            
-            
+            P.refuel = function(delta){
+                delta = Math.min(Math.min(delta, P.stats.fuelLeft.cap - P.stats.fuelLeft.val), P.profit * 64);
+                P.stats.fuelLeft.val += delta;
+                P.profit -= Math.floor(delta / 64);
+                console.log('refuel ' + delta);
+            }     //16 units fuel per cred
+            P.repair =  function(delta){
+                delta = Math.min(Math.min(delta, P.stats.fuselage.cap - P.stats.fuselage.val), P.stats.profit);
+                P.stats.fuselage.val += delta;
+                P.stats.profit -= delta;
+            }    //1 unit pepair per cred
 
             
             function keyDownHandler(e){ console.log(e.which); E.K[e.which] = true; }
@@ -428,7 +437,8 @@
             E.interface = function(t){
                 var S;
                 if(t == 'B'){
-                    S = '<center><h4>BASE</h4></center>'
+                    S = '<center><h4>WORKSTATION</h4></center>';
+                    P.refuel(256);
                 }
                 E.msg(S);
             }
@@ -453,6 +463,8 @@
 
             function timestep(){
                 if(T){
+                    //console.log('timestep');
+                    
                     //TIMESTEPS ON
                     P.update();
     
