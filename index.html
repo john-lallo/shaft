@@ -14,12 +14,15 @@
                 
                 font-size: 16px;
                 font-family: monospace;
+                
+                overflow: hidden;
             }
             
             h3 {
-                font-size: 24px;
+                font-size: 52px;
+                line-height: 0.8;
                 font-weight: bold;
-                margin: 0 0 8px 0;
+                margin: 0 0 16px 0;
             }
             
             #world{
@@ -116,7 +119,7 @@
             }
             
             .panel {
-                margin-top: 240px;
+                margin-top: 160px;
                 
                 color: #fff;
                 background-color: #000;
@@ -381,8 +384,9 @@
                 );
             }
             E.declareDeath = function(cod){
-                var S = '<center><h3>GAME OVER</h3>';
+                var S = '<center><h3>GAME<br>OVER</h3>';
                 S += cod;
+                S += '<div style = "font-size: 10px; margin-top: 60px">PRESS <b>Q</b> TO RESTART</div>'
                 S += '</center>';
                 
                 E.msg(S);
@@ -424,10 +428,10 @@
                         
                         E.declareDeath(eg);
                     }
-                    if(E.K[81]){ E.initgame(); } 
                 } else {
                     //TIME PAUSED
                 }
+                if(E.K[81]){ E.initgame(); } 
             }
 
 	    </script>
