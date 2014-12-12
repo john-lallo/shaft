@@ -1,0 +1,143 @@
+html, body{
+    width: 100%;
+    padding: 0;
+    margin: 0;
+    
+    color: #fff;
+    background-color: #000;
+    
+    font-size: 16px;
+    font-family: 'Share Tech Mono', monospace;
+    
+    overflow: hidden;
+}
+
+h3 {
+    font-size: 52px;
+    line-height: 1;
+    font-weight: bold;
+    margin: 0 0 16px 0;
+}
+
+h4 {
+    font-size: 24px;
+    line-height: 1;
+    font-weight: bold;
+    margin: 0 0 16px 0;
+}
+
+small {
+    font-size: 12px;
+}
+
+#world{
+    position: relative;
+    display: inline-block;
+    
+    width: 640px;
+    height: 640px;
+    
+    margin: 8px 4px;
+    
+    outline: 2px solid #fff;
+    
+    line-height: 1;
+    
+    overflow: hidden;
+}
+    
+.e{
+    display: inline-block;
+    
+    width: 16px;
+    height: 16px;
+    
+    text-align: center;
+}
+
+
+.P { color: #fff; background-color: #000; font-weight: bold; }
+.P-highlighted { color: #000; background-color: #fff; font-weight: bold; }
+
+.Ba { color: #fff; background-color: #000; font-weight: bold; }
+.Bb { color: #fff; background-color: #000; font-weight: bold; }
+
+.A { color: #222; background-color: #000; }
+.E { color: #aaa; background-color: #fff; }
+
+.O1 { color: #ccc; background-color: #ccc; }
+
+
+#stats {
+    display: inline-block;
+    
+    width: 136px;
+    height: 640px;
+    
+    margin: 8px 4px;
+    
+    /*outline: 2px solid #fff;*/
+    
+    overflow: hidden;
+}
+    
+.label {
+    text-align: left;
+}
+    
+.progbar {
+    position: relative;
+    
+    height: 12px;
+    width: 128px;
+    outline: 2px solid #fff;
+    
+    margin: 4px auto 8px auto;
+    text-align: left;
+}
+    
+.bar {
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    top: 0;
+    
+    background-color: #fff;
+}
+
+.valbox {
+    position: relative;
+    
+    width: 128px;
+    
+    margin: 0 auto 8px auto;
+    text-align: right;
+    font-size: 19px;
+    font-weight: bold;
+}
+
+#overlay{
+    position: absolute;
+    
+    height: 100%;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background-color: rgba(0, 0, 0, 0.8);
+}
+
+.panel {
+    margin-top: 160px;
+    
+    color: #fff;
+    background-color: #000;
+    
+    display: inline-block;
+    padding: 32px;
+    
+    vertical-align: middle;
+    text-align: left;
+    
+    outline: 4px solid #000;
+    border: 2px solid #fff;
+}

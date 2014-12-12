@@ -3,154 +3,12 @@
 	<head>
 	    <meta charset = 'utf-8'>
 		<title>shaft-dev</title>
-        <link href='http://fonts.googleapis.com/css?family=PT+Mono' rel='stylesheet' type='text/css'>
-        <link href='http://fonts.googleapis.com/css?family=Share+Tech+Mono' rel='stylesheet' type='text/css'>
-		<style>
-            html, body{
-                width: 100%;
-                padding: 0;
-                margin: 0;
-                
-                color: #fff;
-                background-color: #000;
-                
-                font-size: 16px;
-                font-family: 'Share Tech Mono', monospace;
-                
-                overflow: hidden;
-            }
-            
-            h3 {
-                font-size: 52px;
-                line-height: 1;
-                font-weight: bold;
-                margin: 0 0 16px 0;
-            }
-            
-            h4 {
-                font-size: 24px;
-                line-height: 1;
-                font-weight: bold;
-                margin: 0 0 16px 0;
-            }
-            
-            small {
-                font-size: 12px;
-            }
-            
-            #world{
-                position: relative;
-                display: inline-block;
-                
-                width: 640px;
-                height: 640px;
-                
-                margin: 8px 4px;
-                
-                outline: 2px solid #fff;
-                
-                line-height: 1;
-                
-                overflow: hidden;
-            }
-                
-            .e{
-                display: inline-block;
-                
-                width: 16px;
-                height: 16px;
-                
-                text-align: center;
-            }
-            
-            
-            .P { color: #fff; background-color: #000; font-weight: bold; }
-            .P-highlighted { color: #000; background-color: #fff; font-weight: bold; }
-            
-            .Ba { color: #fff; background-color: #000; font-weight: bold; }
-            .Bb { color: #fff; background-color: #000; font-weight: bold; }
-            
-            .A { color: #222; background-color: #000; }
-            .E { color: #aaa; background-color: #fff; }
-            
-            .O1 { color: #ccc; background-color: #ccc; }
-            
-            
-            #stats {
-                display: inline-block;
-                
-                width: 136px;
-                height: 640px;
-                
-                margin: 8px 4px;
-                
-                /*outline: 2px solid #fff;*/
-                
-                overflow: hidden;
-            }
-                
-            .label {
-                text-align: left;
-            }
-                
-            .progbar {
-                position: relative;
-                
-                height: 12px;
-                width: 128px;
-                outline: 2px solid #fff;
-                
-                margin: 4px auto 8px auto;
-                text-align: left;
-            }
-                
-            .bar {
-                position: absolute;
-                left: 0;
-                bottom: 0;
-                top: 0;
-                
-                background-color: #fff;
-            }
-            
-            .valbox {
-                position: relative;
-                
-                width: 128px;
-                
-                margin: 0 auto 8px auto;
-                text-align: right;
-                font-size: 19px;
-                font-weight: bold;
-            }
-            
-            #overlay{
-                position: absolute;
-                
-                height: 100%;
-                bottom: 0;
-                left: 0;
-                right: 0;
-                background-color: rgba(0, 0, 0, 0.8);
-            }
-            
-            .panel {
-                margin-top: 160px;
-                
-                color: #fff;
-                background-color: #000;
-                
-                display: inline-block;
-                padding: 32px;
-                
-                vertical-align: middle;
-                text-align: left;
-                
-                outline: 4px solid #000;
-                border: 2px solid #fff;
-            }
-		</style>
+
+        <link rel = 'stylesheet' href = 'http://fonts.googleapis.com/css?family=Share+Tech+Mono' type = 'text/css'>
+        <link rel = 'stylesheet' href = 'theme.css' type = 'text/css'>
+        
 	    <script src = "jquery-2.1.1.min.js"></script>
+	    
 	    <script>
 	    
             var W = []; //WORLD ENVIRONMENT
@@ -189,11 +47,6 @@
                     
                     for(var j = 0; j < W.conf.sizeY; ++j){
                         (j < (W.conf.sizeY - depth)) ? W[i][j] = 'A' : W[i][j] = 'E'; //earth surface
-                        /*
-                        if (j > (W.conf.sizeY - depth + 8) && Math.random() < (Math.pow(j, 3/2) * 0.0001)){
-                            W[i][j] = 'O1';
-                        }
-                        */
                     }
                 }
                 
@@ -220,12 +73,16 @@
                 }}
             }
             W.genNext = function(){
-                for(var i = 0; i < W.conf.sizeX; ++i){
-                for(var j = W.conf.sizeY; j < W.conf.sizeY + 8; ++j){
-                    (Math.random() < Math.min((Math.pow(j, 3/2) * 0.0001), 0.3)) ? W[i][j] = 'O1': W[i][j] = 'E';
-                }}
 
-                for(var j = W.conf.sizeY; j < W.conf.sizeY + 8; ++j){                
+                console.log('generating layers...');
+                
+                if(W.conf.sizeY > 50 && Math.random() > 0.9){
+                    W.genEngine.hall();
+                } else {
+                    W.genEngine.orig();
+                }
+
+                for(var j = W.conf.sizeY; j < W.conf.sizeY + 8; ++j){
                 for(var i = 0; i < W.conf.sizeX; ++i){
 
                     $('#world').append('<div class = "e ' + W[i][j] +
@@ -239,6 +96,49 @@
                 
                 W.conf.sizeY += 8;
             }
+            
+            
+            W.genEngine = [];
+            
+            W.genEngine.orig = function(){
+                for(var i = 0; i < W.conf.sizeX; ++i){
+                for(var j = W.conf.sizeY; j < W.conf.sizeY + 8; ++j){
+                    (Math.random() < Math.min((Math.pow(j, 3/2) * 0.0001), 0.3)) ? W[i][j] = 'O1': W[i][j] = 'E';
+                }}
+            }
+            W.genEngine.hall = function(){
+                //determine state
+                var accul = 0;
+                for(var i = 0; i < W.conf.sizeX; ++i){
+                    if(W[i][W.conf.sizeY - 1] != 'A'){ ++accul; }
+                }
+
+                //new layers
+                for(var i = 0; i < W.conf.sizeX; ++i){
+                for(var j = W.conf.sizeY; j < W.conf.sizeY + 8; ++j){
+                    W[i][j] = 'A';
+                }}
+
+
+                if(accul < 8){  //expand
+                    for(var j = W.conf.sizeY; j < W.conf.sizeY + 8; ++j){
+                    for(var i = 0; i < W.conf.sizeX; ++i){
+                            W[i][j] = 'E';
+                    }}
+                    
+                } else {        //contract
+                
+                    for(var j = W.conf.sizeY; j < W.conf.sizeY + 8; ++j){
+                    for(var i = 0; i < W.conf.sizeX; ++i){
+                        if(W[i][j - 1] == 'E' && Math.random() > 0.1){
+                            W[i][j] = 'E';
+                        }
+                    }}
+                
+                }
+                
+            }
+            
 
             W.scroll = function(delta){ $('#world').scrollTop($('#world').scrollTop() + delta * 16); }
             W.depth = function(){ return $('#world').scrollTop() / 16; }
@@ -294,8 +194,8 @@
                 P.stats = [];
         
                 P.stats.fuselage = [];
-                P.stats.fuselage.val = 8;
-                P.stats.fuselage.cap = 8;
+                P.stats.fuselage.val = 6;
+                P.stats.fuselage.cap = 6;
                 
                 P.stats.fuelLeft = [];
                 P.stats.fuelLeft.val = 1024;
@@ -331,7 +231,7 @@
                 var L = N.length;
 
                 N = '</span><span>' + N + '</span>'
-                while(L < 11){ N = '0' + N; ++L; }
+                while(L < 9){ N = '0' + N; ++L; }
                 N = '<span style = "color: #444">' + N;
 
                 $('#' + name).html(N);
@@ -396,6 +296,8 @@
                     footed(P.presX, P.presY) ? P.shove(0, 1) : P.v += P.stats.engine;
                     --P.stats.fuelLeft.val;
                 }
+                
+                P.v = Math.min(Math.max(P.v, -4), 4);   //terminal velocity
                 
                 var delta = 0;
                 var magnt = Math.abs(P.v);
@@ -505,7 +407,7 @@
                     //scroll and procedural generation
                     if(P.presY < W.depth() + 6){ W.scroll(P.presY - W.depth() - 6); }                
                     if(P.presY > W.depth() + (40 - 6)){ W.scroll(P.presY - W.depth() - (40 - 6)); }
-                    while(P.presY > W.conf.sizeY - 6){ W.genNext(); }
+                    while(P.presY > W.conf.sizeY - 6 - P.v){ W.genNext(); }
                     
                     //interface checks
                     
