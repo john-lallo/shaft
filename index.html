@@ -74,15 +74,17 @@
             }
             W.genNext = function(){
 
+                var fromY = W.conf.sizeY;
+                
                 console.log('generating layers...');
                 
-                if(W.conf.sizeY > 50 && Math.random() > 0.9){
-                    W.genEngine.hall();
+                if(fromY > 80 && Math.random() < 0.02){
+                    W.genEngine.gape(fromY);
                 } else {
-                    W.genEngine.orig();
+                    W.genEngine.orig(fromY);
                 }
 
-                for(var j = W.conf.sizeY; j < W.conf.sizeY + 8; ++j){
+                for(var j = fromY; j < W.conf.sizeY; ++j){
                 for(var i = 0; i < W.conf.sizeX; ++i){
 
                     $('#world').append('<div class = "e ' + W[i][j] +
@@ -93,50 +95,48 @@
                     W.elem[i][j] = $('#' + i + '-' + j);
                 
                 }}
-                
-                W.conf.sizeY += 8;
             }
             
             
             W.genEngine = [];
             
-            W.genEngine.orig = function(){
+            W.genEngine.orig = function(fromY){
+                W.conf.sizeY += 8;
+                
                 for(var i = 0; i < W.conf.sizeX; ++i){
-                for(var j = W.conf.sizeY; j < W.conf.sizeY + 8; ++j){
+                for(var j = fromY; j < W.conf.sizeY; ++j){
                     (Math.random() < Math.min((Math.pow(j, 3/2) * 0.0001), 0.3)) ? W[i][j] = 'O1': W[i][j] = 'E';
                 }}
             }
-            W.genEngine.hall = function(){
-                //determine state
-                var accul = 0;
-                for(var i = 0; i < W.conf.sizeX; ++i){
-                    if(W[i][W.conf.sizeY - 1] != 'A'){ ++accul; }
-                }
-
+            W.genEngine.gape = function(fromY){
+                W.conf.sizeY += 36;
+                
                 //new layers
                 for(var i = 0; i < W.conf.sizeX; ++i){
-                for(var j = W.conf.sizeY; j < W.conf.sizeY + 8; ++j){
+                for(var j = fromY; j < W.conf.sizeY; ++j){
                     W[i][j] = 'A';
                 }}
 
+                //ceiling
+                for(var j = fromY; j < fromY + 16; ++j){
+                for(var i = 0; i < W.conf.sizeX; ++i){
+                    if(solid(i, j - 1) && Math.random() > 0.1){ W[i][j] = 'E'; }
+                }}
+                
+                //pillars
+                for(var j = fromY + 16; j < fromY + 28; ++j){
+                for(var i = 0; i < W.conf.sizeX; ++i){
+                        if(solid(i, j - 1)){ W[i][j] = 'E'; }
+                }}
+                
+                //floor
+                for(var j = fromY + 28; j < W.conf.sizeY; ++j){
+                for(var i = 0; i < W.conf.sizeX; ++i){
+                        if(solid(i, j - 1)){ W[i][j] = 'E'; }
+                        if(Math.random() > 0.6 && i < W.conf.sizeX - 1){ W[i + 1][j] = 'E'; }
+                        if(Math.random() > 0.6 && i > 0){ W[i - 1][j] = 'E'; }
+                }}
 
-                if(accul < 8){  //expand
-                    for(var j = W.conf.sizeY; j < W.conf.sizeY + 8; ++j){
-                    for(var i = 0; i < W.conf.sizeX; ++i){
-                            W[i][j] = 'E';
-                    }}
-                    
-                } else {        //contract
-                
-                    for(var j = W.conf.sizeY; j < W.conf.sizeY + 8; ++j){
-                    for(var i = 0; i < W.conf.sizeX; ++i){
-                        if(W[i][j - 1] == 'E' && Math.random() > 0.1){
-                            W[i][j] = 'E';
-                        }
-                    }}
-                
-                }
-                
             }
             
 
@@ -202,6 +202,7 @@
                 P.stats.fuelLeft.cap = 1024;
                 
                 P.stats.efficiency = 2;
+                P.stats.efficiency = 8;
                 P.stats.engine = 0.5;
                 
                 P.progress = 0;
@@ -279,7 +280,7 @@
             }    //0.5 unit pepair per cred
 
             
-            function keyDownHandler(e){ console.log(e.which); E.K[e.which] = true; }
+            function keyDownHandler(e){ /*console.log(e.which);*/ E.K[e.which] = true; }
             function keyUpHandler(e){ E.K[e.which] = false; }
             
             var gravity = 0.2;
@@ -405,9 +406,9 @@
                     showVal('profit', P.profit);
                     
                     //scroll and procedural generation
+                    while(P.presY > W.conf.sizeY - 6 - P.v){ W.genNext(); }
                     if(P.presY < W.depth() + 6){ W.scroll(P.presY - W.depth() - 6); }                
                     if(P.presY > W.depth() + (40 - 6)){ W.scroll(P.presY - W.depth() - (40 - 6)); }
-                    while(P.presY > W.conf.sizeY - 6 - P.v){ W.genNext(); }
                     
                     //interface checks
                     
