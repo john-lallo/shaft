@@ -3,6 +3,8 @@
 	<head>
 	    <meta charset = 'utf-8'>
 		<title>shaft-dev</title>
+        <link href='http://fonts.googleapis.com/css?family=PT+Mono' rel='stylesheet' type='text/css'>
+        <link href='http://fonts.googleapis.com/css?family=Share+Tech+Mono' rel='stylesheet' type='text/css'>
 		<style>
             html, body{
                 width: 100%;
@@ -13,7 +15,7 @@
                 background-color: #000;
                 
                 font-size: 16px;
-                font-family: monospace;
+                font-family: 'Share Tech Mono', monospace;
                 
                 overflow: hidden;
             }
@@ -30,6 +32,10 @@
                 line-height: 1;
                 font-weight: bold;
                 margin: 0 0 16px 0;
+            }
+            
+            small {
+                font-size: 12px;
             }
             
             #world{
@@ -67,7 +73,7 @@
             .A { color: #222; background-color: #000; }
             .E { color: #aaa; background-color: #fff; }
             
-            .O { color: #ccc; background-color: #ccc; }
+            .O1 { color: #ccc; background-color: #ccc; }
             
             
             #stats {
@@ -165,7 +171,7 @@
                     'A': '·',   // [A]ir
                     'E': '·',   // [E]arth
                     
-                    'O': '.'    // [O]re
+                    'O1': '.'   // [O]re
                 };
                 
                 W.genInit();
@@ -183,10 +189,11 @@
                     
                     for(var j = 0; j < W.conf.sizeY; ++j){
                         (j < (W.conf.sizeY - depth)) ? W[i][j] = 'A' : W[i][j] = 'E'; //earth surface
-                        
+                        /*
                         if (j > (W.conf.sizeY - depth + 8) && Math.random() < (Math.pow(j, 3/2) * 0.0001)){
-                            W[i][j] = 'O';
+                            W[i][j] = 'O1';
                         }
+                        */
                     }
                 }
                 
@@ -215,7 +222,7 @@
             W.genNext = function(){
                 for(var i = 0; i < W.conf.sizeX; ++i){
                 for(var j = W.conf.sizeY; j < W.conf.sizeY + 8; ++j){
-                    (Math.random() < (Math.pow(j, 3/2) * 0.0001)) ? W[i][j] = 'O': W[i][j] = 'E';
+                    (Math.random() < Math.min((Math.pow(j, 3/2) * 0.0001), 0.3)) ? W[i][j] = 'O1': W[i][j] = 'E';
                 }}
 
                 for(var j = W.conf.sizeY; j < W.conf.sizeY + 8; ++j){                
@@ -239,7 +246,7 @@
             W.altr = function(x, y, t){
                 if(valid(x, y)){
                     
-                if(W[x][y] == 'O' && t == 'A'){ P.profit += 4; }
+                if(W[x][y].substr(0, 1) == 'O' && t == 'A'){ P.profit += Number(W[x][y].substr(1,2)); }
                 
                 W[x][y] = t;
                 W.elem[x][y].attr('class', 'e ' + t).html(W.conf.image[t]);
@@ -299,7 +306,7 @@
                 
                 P.progress = 0;
     
-                P.profit = 12;
+                P.profit = 0;
                 
                 P.v = 0;
             }
@@ -414,9 +421,13 @@
             var buffer;
             
             E.initgame = function(){
+            
+                E.endflag = false;
                 E.K = [];
+                
                 W.init();
                 P.init();
+                
                 T = true;
                 buffer = false;
             }
@@ -431,9 +442,11 @@
             }
             E.hide = function(str){ $('#overlay').remove(); T = true; }
             E.declareDeath = function(cod){
+                E.endflag = true;
+                
                 var S = '<center><h3>GAME<br>OVER</h3>';
                 S += cod;
-                S += '<div style = "font-size: 10px; margin-top: 60px">PRESS <b>Q</b> TO RESTART</div>'
+                S += '<div style = "margin-top: 60px"><small>PRESS <b>Q</b> TO RESTART</small></div>'
                 S += '</center>';
                 
                 E.msg(S);
@@ -449,13 +462,14 @@
                     S = '<center><h4>WORKSTATION</h4></center><br>' +
                     '<div>YOUR CRAFT HAS BEEN REFUELED <b>' + ref + '</b> UNITS.</div>' +
                     '<div>YOUR CRAFT HAS BEEN REPAIRED <b>' + rep + '</b> UNITS.</div>' +
-                    '<br><br><div>TOTAL COST: <b>' + (Math.ceil(ref / 16) + rep * 2) + '</b> CREDITS.</div>';
+                    '<br><br><div>TOTAL COST: <b>' + (Math.ceil(ref / 64) + rep * 2) + '</b> CREDITS.</div>';
                     
-                    S += '<div style = "font-size: 10px; margin-top: 60px">PRESS <b>ESC</b> TO CONTINUE</div>'
+                    S += '<div style = "margin-top: 60px"><small>PRESS <b>ESC</b> TO CONTINUE</small></div>'
                 }
                 E.msg(S);
                 //E.hide(S); //placeholder
             }
+            
             
             function endgame(){
                 if(P.stats.fuselage.val <= 0){ return 'FATAL DAMAGE'; }
@@ -464,6 +478,7 @@
                 }
                 return 0;
             }
+            
             $(document).ready(function(){
                 
                 E.initgame();
@@ -488,9 +503,9 @@
                     showVal('profit', P.profit);
                     
                     //scroll and procedural generation
-                    if(P.presY < W.depth() + 6){ W.scroll(-1); }                
-                    if(P.presY > W.depth() + (40 - 6)){ W.scroll(1); }
-                    if(P.presY > W.conf.sizeY - 6){ W.genNext(); }
+                    if(P.presY < W.depth() + 6){ W.scroll(P.presY - W.depth() - 6); }                
+                    if(P.presY > W.depth() + (40 - 6)){ W.scroll(P.presY - W.depth() - (40 - 6)); }
+                    while(P.presY > W.conf.sizeY - 6){ W.genNext(); }
                     
                     //interface checks
                     
@@ -510,7 +525,7 @@
                     
                 } else {
                     //TIME PAUSED - in interface or dead.
-                    if(E.K[27] /* esc */ ){ E.hide(); } 
+                    if(E.K[27] && (!E.endflag) /* esc */ ){ E.hide(); } 
                 }
                 
                 if(E.K[81]){ E.initgame(); } 
