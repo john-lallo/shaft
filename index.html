@@ -58,6 +58,7 @@
 
                 //project to screen
                 $('#world').html('');
+                
                 for(var i = 0; i < W.conf.sizeX; ++i){ W.elem[i] = []; }
 
                 for(var j = 0; j < W.conf.sizeY; ++j){
@@ -227,12 +228,14 @@
             }
         
             function showProg(name, val, cap){ $('#' + name).css('width', 8 * Math.ceil(16 * val / cap)); }
-            function showVal(name, val){
+            function showVal(name, val, padding){
+                if(padding == undefined){ padding = 0; }
+                
                 var N = val.toString();
                 var L = N.length;
 
                 N = '</span><span>' + N + '</span>'
-                while(L < 9){ N = '0' + N; ++L; }
+                while(L < padding){ N = '0' + N; ++L; }
                 N = '<span style = "color: #444">' + N;
 
                 $('#' + name).html(N);
@@ -374,6 +377,12 @@
             }
             
             
+            function echoStats(){
+                showProg('fuelLeft', P.stats.fuelLeft.val, P.stats.fuelLeft.cap);
+                showProg('fuselage', P.stats.fuselage.val, P.stats.fuselage.cap);
+                showVal('profit', P.profit, 12);
+            }
+            
             function endgame(){
                 if(P.stats.fuselage.val <= 0){ return 'FATAL DAMAGE'; }
                 if(P.stats.fuelLeft.val <= 0 && footed(P.presX, P.presY)){
@@ -401,9 +410,7 @@
                     P.update();
     
                     //display stats interface
-                    showProg('fuelLeft', P.stats.fuelLeft.val, P.stats.fuelLeft.cap);
-                    showProg('fuselage', P.stats.fuselage.val, P.stats.fuselage.cap);
-                    showVal('profit', P.profit);
+                    echoStats();
                     
                     //scroll and procedural generation
                     while(P.presY > W.conf.sizeY - 6 - P.v){ W.genNext(); }
@@ -439,20 +446,26 @@
 
 	<body>
 	<div style = "text-align: center; width: 100%; padding: 32px 0">
-        <div id = "world">
-        
-        </div>
+	
+    	<div>
 
-        <div id = "stats">
-            <div class = 'label'>PROFIT</div>
-            <div id = 'profit' class = 'valbox'></div>
-
-            <div class = 'label'>FUSELAGE</div>
-            <div class = 'progbar'><div id = 'fuselage' class = 'bar'></div></div>
+            <div id = "world">
             
-            <div class = 'label'>FUEL</div>
-            <div class = 'progbar'><div id = 'fuelLeft' class = 'bar'></div></div>
+            </div>
+    
+            <div id = "stats">
+                <div class = 'label'>PROFIT</div>
+                <div id = 'profit' class = 'valbox'></div>
+    
+                <div class = 'label'>FUSELAGE</div>
+                <div class = 'progbar'><div id = 'fuselage' class = 'bar'></div></div>
+                
+                <div class = 'label'>FUEL</div>
+                <div class = 'progbar'><div id = 'fuelLeft' class = 'bar'></div></div>
+            </div>
         </div>
+
+    
     </div>
 	</body>
 </html>

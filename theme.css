@@ -78,9 +78,15 @@ small {
     
     /*outline: 2px solid #fff;*/
     
+    text-align: left;
     overflow: hidden;
 }
-    
+
+
+
+
+
+
 .label {
     text-align: left;
 }
@@ -115,6 +121,15 @@ small {
     font-size: 19px;
     font-weight: bold;
 }
+
+.var {
+    display: inline-block;
+    font-weight: bold;
+}
+
+
+
+
 
 #overlay{
     position: absolute;
