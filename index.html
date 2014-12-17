@@ -89,9 +89,8 @@
                 overflow: hidden;
             }
                 
-            .label {
-                text-align: left;
-            }
+            .label {text-align: left;}
+            .inline-label { display: inline-block; font-size: 14px;}
                 
             .progbar {
                 position: relative;
@@ -113,6 +112,8 @@
                 background-color: #fff;
             }
             
+            .inline-wrapper { text-align: left; }
+            
             .valbox {
                 position: relative;
                 
@@ -121,6 +122,12 @@
                 margin: 0 auto 8px auto;
                 text-align: right;
                 font-size: 19px;
+                font-weight: bold;
+            }
+            .inline-valbox {
+                display: inline;
+
+                font-size: 14px;
                 font-weight: bold;
             }
             
@@ -246,7 +253,10 @@
             W.altr = function(x, y, t){
                 if(valid(x, y)){
                     
-                if(W[x][y].substr(0, 1) == 'O' && t == 'A'){ P.profit += Number(W[x][y].substr(1,2)); }
+                if(W[x][y].substr(0, 1) == 'O' && t == 'A'){
+                    P.profit += Number(W[x][y].substr(1,2));
+                    P.aggreg += Number(W[x][y].substr(1,2));
+                }
                 
                 W[x][y] = t;
                 W.elem[x][y].attr('class', 'e ' + t).html(W.conf.image[t]);
@@ -307,6 +317,7 @@
                 P.progress = 0;
     
                 P.profit = 0;
+                P.aggreg = 0;
                 
                 P.v = 0;
             }
@@ -326,12 +337,14 @@
             }
         
             function showProg(name, val, cap){ $('#' + name).css('width', 8 * Math.ceil(16 * val / cap)); }
-            function showVal(name, val){
+            function showVal(name, val, pad){
+                if(!pad){ pad = 0; }
+                
                 var N = val.toString();
                 var L = N.length;
 
                 N = '</span><span>' + N + '</span>'
-                while(L < 11){ N = '0' + N; ++L; }
+                while(L < pad){ N = '0' + N; ++L; }
                 N = '<span style = "color: #444">' + N;
 
                 $('#' + name).html(N);
@@ -500,7 +513,8 @@
                     //display stats interface
                     showProg('fuelLeft', P.stats.fuelLeft.val, P.stats.fuelLeft.cap);
                     showProg('fuselage', P.stats.fuselage.val, P.stats.fuselage.cap);
-                    showVal('profit', P.profit);
+                    showVal('profit', P.profit, 11);
+                    showVal('aggreg', P.aggreg, 1);
                     
                     //scroll and procedural generation
                     if(P.presY < W.depth() + 6){ W.scroll(P.presY - W.depth() - 6); }                
@@ -541,6 +555,7 @@
         </div>
 
         <div id = "stats">
+        
             <div class = 'label'>PROFIT</div>
             <div id = 'profit' class = 'valbox'></div>
 
@@ -549,6 +564,13 @@
             
             <div class = 'label'>FUEL</div>
             <div class = 'progbar'><div id = 'fuelLeft' class = 'bar'></div></div>
+            
+            <br><br><br>
+            
+            <div style = 'text-align: right'>
+            <div class = 'inline-label'>MARK</div>
+            <div id = 'aggreg' class = 'inline-valbox'></div>
+            </div>
         </div>
     </div>
 	</body>
