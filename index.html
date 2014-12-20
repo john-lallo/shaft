@@ -234,23 +234,16 @@
             }
         
             function showProg(name, val, cap){ $('#' + name).css('width', 8 * Math.ceil(16 * val / cap)); }
-<<<<<<< HEAD
+
             function showVal(name, val, pad){
                 if(!pad){ pad = 0; }
-=======
-            function showVal(name, val, padding){
-                if(padding == undefined){ padding = 0; }
->>>>>>> eeafe4ee7a3aa19ae00d20f5e09f21d156472763
-                
+
                 var N = val.toString();
                 var L = N.length;
 
                 N = '</span><span>' + N + '</span>'
-<<<<<<< HEAD
+
                 while(L < pad){ N = '0' + N; ++L; }
-=======
-                while(L < padding){ N = '0' + N; ++L; }
->>>>>>> eeafe4ee7a3aa19ae00d20f5e09f21d156472763
                 N = '<span style = "color: #444">' + N;
 
                 $('#' + name).html(N);
@@ -425,14 +418,11 @@
                     P.update();
     
                     //display stats interface
-<<<<<<< HEAD
                     showProg('fuelLeft', P.stats.fuelLeft.val, P.stats.fuelLeft.cap);
                     showProg('fuselage', P.stats.fuselage.val, P.stats.fuselage.cap);
                     showVal('profit', P.profit, 11);
                     showVal('aggreg', P.aggreg, 1);
-=======
-                    echoStats();
->>>>>>> eeafe4ee7a3aa19ae00d20f5e09f21d156472763
+
                     
                     //scroll and procedural generation
                     while(P.presY > W.conf.sizeY - 6 - P.v){ W.genNext(); }
@@ -468,10 +458,11 @@
 
 	<body>
 	<div style = "text-align: center; width: 100%; padding: 32px 0">
-	
-    	<div>
+        <div id = "world">
+        
+        </div>
 
-<<<<<<< HEAD
+
         <div id = "stats">
         
             <div class = 'label'>PROFIT</div>
@@ -488,25 +479,11 @@
             <div style = 'text-align: right'>
             <div class = 'inline-label'>MARK</div>
             <div id = 'aggreg' class = 'inline-valbox'></div>
-=======
-            <div id = "world">
-            
-            </div>
-    
-            <div id = "stats">
-                <div class = 'label'>PROFIT</div>
-                <div id = 'profit' class = 'valbox'></div>
-    
-                <div class = 'label'>FUSELAGE</div>
-                <div class = 'progbar'><div id = 'fuselage' class = 'bar'></div></div>
-                
-                <div class = 'label'>FUEL</div>
-                <div class = 'progbar'><div id = 'fuelLeft' class = 'bar'></div></div>
->>>>>>> eeafe4ee7a3aa19ae00d20f5e09f21d156472763
-            </div>
         </div>
 
     
     </div>
+    </div>
+    
 	</body>
 </html>
